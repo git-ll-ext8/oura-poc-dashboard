@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CentreCourt · Team Wellness</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Open+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --cc-blue:       #295880;
+  --cc-blue-dark:  #1a3a56;
+  --cc-blue-deep:  #0d2035;
+  --cc-blue-mid:   #1f4368;
+  --cc-blue-card:  #162d45;
+  --cc-blue-border:#1e3a56;
+  --cc-gold:       #C9A84C;
+  --cc-gold-dim:   rgba(201,168,76,0.15);
+  --cc-blue-glow:  rgba(41,88,128,0.35);
+  --green:         #4CAF8A;
+  --green-dim:     rgba(76,175,138,0.15);
+  --coral:         #E06060;
+  --coral-dim:     rgba(224,96,96,0.15);
+  --silver:        #8BADC8;
+  --text:          #EDF2F7;
+  --text-muted:    #7A9BB8;
+  --text-dim:      #3A5570;
+}
+
+body {
+  font-family: 'Open Sans', sans-serif;
+  background: var(--cc-blue-deep);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  overflow-x: hidden;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 230px;
+  min-height: 100vh;
+  background: var(--cc-blue-dark);
+  border-right: 1px solid var(--cc-blue-border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 100;
+}
+
+.sidebar-logo {
+  padding: 24px 22px 22px;
+  border-bottom: 1px solid var(--cc-blue-border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.logo-wordmark {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #fff;
+}
+.logo-wordmark span { color: var(--cc-gold); }
+.logo-sub {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.nav-section { padding: 20px 12px 0; }
+.nav-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 0 10px;
+  margin-bottom: 6px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: all 0.15s;
+  margin-bottom: 2px;
+  border: 1px solid transparent;
+}
+.nav-item:hover { background: rgba(41,88,128,0.3); color: var(--text); }
+.nav-item.active {
+  background: rgba(41,88,128,0.5);
+  color: #fff;
+  border-color: var(--cc-blue);
+}
+.nav-item .icon { font-size: 15px; width: 20px; text-align: center; }
+
+.sidebar-team { padding: 16px 12px 0; }
+.team-member-nav {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-muted);
+  transition: all 0.15s;
+  margin-bottom: 2px;
+}
+.team-member-nav:hover { background: rgba(41,88,128,0.2); color: var(--text); }
+.tav {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700;
+  font-family: 'Montserrat', sans-serif;
+  flex-shrink: 0;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 16px 22px;
+  border-top: 1px solid var(--cc-blue-border);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.sync-dot {
+  display: inline-block; width: 6px; height: 6px;
+  background: var(--green); border-radius: 50%;
+  margin-right: 6px;
+  animation: pulse 2.5s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* ── MAIN ── */
+.main {
+  margin-left: 230px;
+  flex: 1;
+  padding: 32px 36px;
+  max-width: calc(100vw - 230px);
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+.page-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--cc-gold);
+  margin-bottom: 6px;
+}
+.page-title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.15;
+}
+.page-date { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+.header-actions { display: flex; gap: 10px; align-items: center; }
+.btn {
+  padding: 9px 18px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  font-family: 'Montserrat', sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: all 0.15s;
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--cc-blue-border);
+}
+.btn-ghost:hover { border-color: var(--silver); color: var(--text); }
+.btn-primary {
+  background: var(--cc-gold);
+  color: var(--cc-blue-deep);
+}
+.btn-primary:hover { opacity: 0.9; }
+
+/* ── TABS ── */
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--cc-blue-border);
+  margin-bottom: 26px;
+}
+.tab {
+  padding: 10px 22px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: all 0.15s;
+  border: none;
+  background: transparent;
+  font-family: 'Montserrat', sans-serif;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--cc-gold); border-bottom-color: var(--cc-gold); }
+
+/* ── MEMBER CARDS ── */
+.leaderboard-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+  margin-bottom: 26px;
+}
+.member-card {
+  background: var(--cc-blue-card);
+  border: 1px solid var(--cc-blue-border);
+  border-radius: 8px;
+  padding: 20px 14px 16px;
+  text-align: center;
+  position: relative;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.member-card:hover { border-color: var(--cc-blue); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+.member-card.rank-1 { border-color: var(--cc-gold); box-shadow: 0 0 18px rgba(201,168,76,0.12); }
+
+.rank-badge {
+  position: absolute;
+  top: -11px; left: 50%;
+  transform: translateX(-50%);
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Montserrat', sans-serif;
+}
+.rank-1 .rank-badge { background: var(--cc-gold); color: var(--cc-blue-deep); }
+.rank-2 .rank-badge { background: #9BA8B5; color: var(--cc-blue-deep); }
+.rank-3 .rank-badge { background: #9B6E3E; color: #fff; }
+.rank-4 .rank-badge, .rank-5 .rank-badge { background: var(--cc-blue-border); color: var(--text-muted); }
+
+.avatar {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px;
+  font-weight: 800;
+  font-family: 'Montserrat', sans-serif;
+  margin: 12px auto 8px;
+}
+.member-name {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 2px;
+}
+.member-role {
+  font-size: 9px;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+}
+
+.ring-container {
+  position: relative;
+  width: 76px; height: 76px;
+  margin: 0 auto 6px;
+}
+.ring-score {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Montserrat', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+}
+.score-label {
+  font-size: 9px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.mini-metrics {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--cc-blue-border);
+}
+.mini-metric .val {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+}
+.mini-metric .lbl {
+  font-size: 8px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-weight: 600;
+}
+
+/* ── SECTION TITLE ── */
+.section-eyebrow {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--cc-gold);
+  margin-bottom: 4px;
+}
+.section-title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 14px;
+}
+
+/* ── METRIC CARDS ── */
+.metrics-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.metric-card {
+  background: var(--cc-blue-card);
+  border: 1px solid var(--cc-blue-border);
+  border-radius: 8px;
+  padding: 16px 18px;
+}
+.metric-card .m-icon { font-size: 20px; margin-bottom: 8px; }
+.metric-card .m-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+  font-weight: 700;
+}
+.metric-card .m-winner {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 10px;
+}
+.bar-track {
+  height: 3px;
+  background: var(--cc-blue-border);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 3px;
+}
+.bar-fill { height: 100%; border-radius: 2px; }
+.mini-bar-row { margin-bottom: 5px; }
+.mini-bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+/* ── CHART CARD ── */
+.chart-card {
+  background: var(--cc-blue-card);
+  border: 1px solid var(--cc-blue-border);
+  border-radius: 8px;
+  padding: 22px 24px;
+  margin-bottom: 24px;
+}
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+.chart-title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+}
+.legend { display: flex; gap: 16px; flex-wrap: wrap; }
+.legend-item {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; color: var(--text-muted);
+}
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+/* ── QUARTERLY ── */
+.q-selector { display: flex; gap: 6px; margin-bottom: 20px; }
+.q-btn {
+  padding: 7px 16px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid var(--cc-blue-border);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: 'Montserrat', sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: all 0.15s;
+}
+.q-btn:hover { border-color: var(--cc-gold); color: var(--cc-gold); }
+.q-btn.active { background: var(--cc-gold-dim); border-color: var(--cc-gold); color: var(--cc-gold); }
+
+.most-improved-banner {
+  background: linear-gradient(135deg, rgba(41,88,128,0.4), rgba(201,168,76,0.1));
+  border: 1px solid var(--cc-gold);
+  border-radius: 8px;
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.mib-trophy { font-size: 30px; }
+.mib-eyebrow {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--cc-gold);
+  margin-bottom: 4px;
+}
+.mib-name {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 21px;
+  font-weight: 800;
+  color: #fff;
+}
+.mib-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+.quarterly-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.improvement-card {
+  background: var(--cc-blue-card);
+  border: 1px solid var(--cc-blue-border);
+  border-radius: 8px;
+  padding: 18px 20px;
+}
+.ic-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--cc-blue-border);
+}
+.ic-icon { font-size: 20px; }
+.ic-title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+}
+.ic-sub { font-size: 10px; color: var(--text-muted); }
+
+.improvement-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(30,58,86,0.6);
+}
+.improvement-row:last-child { border-bottom: none; }
+.ir-person { display: flex; align-items: center; gap: 8px; }
+.ir-avatar {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800;
+  font-family: 'Montserrat', sans-serif;
+}
+.ir-name { font-size: 12px; font-weight: 600; color: var(--text); }
+.ir-delta {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+}
+.delta-pos { color: var(--green); }
+.ir-from { font-size: 10px; color: var(--text-dim); text-align: right; margin-top: 1px; }
+
+/* ── TABS PAGES ── */
+.tab-page { display: none; }
+.tab-page.active { display: block; }
+
+/* ── BADGES ── */
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th {
+  text-align: left;
+  padding: 9px 14px;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--cc-blue-border);
+  font-weight: 700;
+  font-family: 'Montserrat', sans-serif;
+}
+.data-table td {
+  padding: 11px 14px;
+  border-bottom: 1px solid rgba(30,58,86,0.5);
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table td:first-child { color: #fff; font-weight: 600; }
+.pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  font-family: 'Montserrat', sans-serif;
+}
+.pill-gold { background: var(--cc-gold-dim); color: var(--cc-gold); }
+.pill-green { background: var(--green-dim); color: var(--green); }
+.pill-blue { background: rgba(41,88,128,0.3); color: var(--silver); }
+
+.badges-row {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px;
+}
+.badge {
+  background: var(--cc-blue-card);
+  border: 1px solid var(--cc-blue-border);
+  border-radius: 4px;
+  padding: 7px 14px;
+  font-size: 11px;
+  display: flex; align-items: center; gap: 6px;
+  color: var(--text-muted);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.badge.earned { border-color: var(--cc-gold); color: var(--cc-gold); background: var(--cc-gold-dim); }
+.badge .b-icon { font-size: 13px; }
+
+/* divider */
+.divider {
+  height: 1px;
+  background: var(--cc-blue-border);
+  margin: 0 0 20px;
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-wordmark">CENTRE<span>COURT</span></div>
+    <div class="logo-sub">Team Wellness</div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Views</div>
+    <div class="nav-item active" onclick="setNav(this,'leaderboard')">
+      <span class="icon">🏆</span> Leaderboard
+    </div>
+    <div class="nav-item" onclick="setNav(this,'quarterly')">
+      <span class="icon">📈</span> Quarterly Growth
+    </div>
+    <div class="nav-item" onclick="setNav(this,'trends')">
+      <span class="icon">📊</span> Weekly Trends
+    </div>
+    <div class="nav-item" onclick="setNav(this,'badges')">
+      <span class="icon">🎖️</span> Achievements
+    </div>
+  </div>
+
+  <div class="sidebar-team nav-section" style="margin-top:12px;">
+    <div class="nav-label">Team</div>
+    <div id="sidebar-members"></div>
+  </div>
+
+  <div class="sidebar-footer">
+    <span class="sync-dot"></span>Synced today · 8:14 AM
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- LEADERBOARD -->
+  <div class="tab-page active" id="page-leaderboard">
+    <div class="page-header">
+      <div>
+        <div class="page-eyebrow">CentreCourt · Wellness Challenge</div>
+        <div class="page-title">Team Leaderboard</div>
+        <div class="page-date">Thursday, June 12, 2026 · Week 24</div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-ghost">⬇ Export</button>
+        <button class="btn btn-primary">+ Invite</button>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="setSubTab(this)">Today</button>
+      <button class="tab" onclick="setSubTab(this)">This Week</button>
+      <button class="tab" onclick="setSubTab(this)">This Month</button>
+    </div>
+
+    <div class="leaderboard-grid" id="member-cards"></div>
+
+    <div class="section-eyebrow">Category</div>
+    <div class="section-title">Today's Category Leaders</div>
+    <div class="metrics-row">
+      <div class="metric-card">
+        <div class="m-icon">😴</div>
+        <div class="m-label">Best Sleep Score</div>
+        <div class="m-winner" id="sleep-winner"></div>
+        <div id="sleep-bars"></div>
+      </div>
+      <div class="metric-card">
+        <div class="m-icon">⚡</div>
+        <div class="m-label">Best Readiness</div>
+        <div class="m-winner" id="ready-winner"></div>
+        <div id="ready-bars"></div>
+      </div>
+      <div class="metric-card">
+        <div class="m-icon">💓</div>
+        <div class="m-label">Best HRV</div>
+        <div class="m-winner" id="hrv-winner"></div>
+        <div id="hrv-bars"></div>
+      </div>
+      <div class="metric-card">
+        <div class="m-icon">🏃</div>
+        <div class="m-label">Most Steps</div>
+        <div class="m-winner" id="steps-winner"></div>
+        <div id="steps-bars"></div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">Weekly Point Standings</div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#C9A84C"></div>Readiness 40%</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#8BADC8"></div>Sleep 30%</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#4CAF8A"></div>Activity 20%</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#E06060"></div>HRV 10%</div>
+        </div>
+      </div>
+      <canvas id="weeklyChart" height="85"></canvas>
+    </div>
+  </div>
+
+  <!-- QUARTERLY -->
+  <div class="tab-page" id="page-quarterly">
+    <div class="page-header">
+      <div>
+        <div class="page-eyebrow">CentreCourt · Continuous Improvement</div>
+        <div class="page-title">Quarterly Growth</div>
+        <div class="page-date">Tracking improvement deltas across all health metrics</div>
+      </div>
+    </div>
+
+    <div class="q-selector">
+      <button class="q-btn active" onclick="setQ(this,'Q1')">Q1 2026</button>
+      <button class="q-btn" onclick="setQ(this,'Q2')">Q2 2026</button>
+      <button class="q-btn" onclick="setQ(this,'Q3')">Q3 2026</button>
+      <button class="q-btn" onclick="setQ(this,'Q4')">Q4 2026</button>
+    </div>
+
+    <div class="most-improved-banner">
+      <div class="mib-trophy">🏆</div>
+      <div>
+        <div class="mib-eyebrow">Most Improved · Q1 2026</div>
+        <div class="mib-name">Nadia M.</div>
+        <div class="mib-desc">+18 pts overall · Biggest gains in Sleep (+14) and Readiness (+11) · 4 personal records broken</div>
+      </div>
+    </div>
+
+    <div class="quarterly-grid">
+      <div class="improvement-card">
+        <div class="ic-header">
+          <div class="ic-icon">😴</div>
+          <div><div class="ic-title">Sleep Score Improvement</div><div class="ic-sub">Q4 2025 → Q1 2026 average</div></div>
+        </div>
+        <div id="q-sleep-rows"></div>
+      </div>
+      <div class="improvement-card">
+        <div class="ic-header">
+          <div class="ic-icon">⚡</div>
+          <div><div class="ic-title">Readiness Score Improvement</div><div class="ic-sub">Q4 2025 → Q1 2026 average</div></div>
+        </div>
+        <div id="q-ready-rows"></div>
+      </div>
+      <div class="improvement-card">
+        <div class="ic-header">
+          <div class="ic-icon">💓</div>
+          <div><div class="ic-title">HRV Improvement</div><div class="ic-sub">Q4 2025 → Q1 2026 average (ms)</div></div>
+        </div>
+        <div id="q-hrv-rows"></div>
+      </div>
+      <div class="improvement-card">
+        <div class="ic-header">
+          <div class="ic-icon">🏃</div>
+          <div><div class="ic-title">Daily Steps Improvement</div><div class="ic-sub">Q4 2025 → Q1 2026 average</div></div>
+        </div>
+        <div id="q-steps-rows"></div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">Readiness Score · 5-Quarter Trend</div>
+      </div>
+      <canvas id="quarterlyChart" height="78"></canvas>
+    </div>
+  </div>
+
+  <!-- TRENDS -->
+  <div class="tab-page" id="page-trends">
+    <div class="page-header">
+      <div>
+        <div class="page-eyebrow">CentreCourt · Weekly Deep-Dive</div>
+        <div class="page-title">Weekly Trends</div>
+        <div class="page-date">Last 7 days · All members</div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">Sleep Score — Past 7 Days</div>
+        <div class="legend" id="trend-legend"></div>
+      </div>
+      <canvas id="sleepTrendChart" height="85"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-header"><div class="chart-title">HRV (ms) — Past 7 Days</div></div>
+      <canvas id="hrvTrendChart" height="85"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-header"><div class="chart-title">Daily Steps — Past 7 Days</div></div>
+      <canvas id="stepsTrendChart" height="85"></canvas>
+    </div>
+  </div>
+
+  <!-- BADGES -->
+  <div class="tab-page" id="page-badges">
+    <div class="page-header">
+      <div>
+        <div class="page-eyebrow">CentreCourt · Milestones</div>
+        <div class="page-title">Achievements</div>
+        <div class="page-date">Earned badges · Active streaks · Personal records</div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Member</th>
+            <th>Active Streak</th>
+            <th>Badges</th>
+            <th>Personal Records</th>
+            <th>Top Achievement</th>
+          </tr>
+        </thead>
+        <tbody id="badges-tbody"></tbody>
+      </table>
+    </div>
+    <div class="section-eyebrow">Available</div>
+    <div class="section-title">Badge Library</div>
+    <div class="badges-row">
+      <div class="badge earned"><span class="b-icon">🌙</span>Sleep Streak ×7</div>
+      <div class="badge earned"><span class="b-icon">🔥</span>10K Steps ×5</div>
+      <div class="badge earned"><span class="b-icon">💎</span>90+ Readiness</div>
+      <div class="badge"><span class="b-icon">🧘</span>HRV Elite (80ms+)</div>
+      <div class="badge"><span class="b-icon">🌅</span>Early Riser ×14</div>
+      <div class="badge"><span class="b-icon">⚡</span>30-Day Streak</div>
+      <div class="badge"><span class="b-icon">🏆</span>Monthly Champion</div>
+      <div class="badge"><span class="b-icon">📈</span>Most Improved Q</div>
+      <div class="badge"><span class="b-icon">💪</span>Activity Leader</div>
+      <div class="badge"><span class="b-icon">🧬</span>Recovery Master</div>
+    </div>
+  </div>
+
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+// ── DATA ──
+// Colours chosen to work cleanly on dark CC blue
+const COLORS = {
+  Danny:    '#C9A84C',   // CC gold — the natural choice for the principal
+  Nadia:    '#8BADC8',   // steel blue
+  Lawrence: '#4CAF8A',   // green
+  Kathrina: '#A78BF6',   // soft violet
+  Tracy:    '#E06060',   // coral
+};
+
+const members = [
+  { id:'D', name:'Danny',    role:'Principal',    color: COLORS.Danny,
+    readiness:88, sleep:82, hrv:58, steps:9820,  streak:12, badges:7, prs:3, topBadge:'Monthly Champion' },
+  { id:'N', name:'Nadia',    role:'Talent Acq.',  color: COLORS.Nadia,
+    readiness:91, sleep:88, hrv:62, steps:11240, streak:21, badges:9, prs:5, topBadge:'Sleep Streak ×21' },
+  { id:'L', name:'Lawrence', role:'Manager',      color: COLORS.Lawrence,
+    readiness:78, sleep:85, hrv:67, steps:8600,  streak:17, badges:8, prs:4, topBadge:'HRV Elite' },
+  { id:'K', name:'Kathrina', role:'Associate',    color: COLORS.Kathrina,
+    readiness:83, sleep:79, hrv:55, steps:13100, streak:8,  badges:6, prs:2, topBadge:'Activity Leader' },
+  { id:'T', name:'Tracy',    role:'Analyst',      color: COLORS.Tracy,
+    readiness:74, sleep:71, hrv:44, steps:7340,  streak:4,  badges:3, prs:1, topBadge:'10K Steps ×5' },
+];
+
+// Sort by readiness descending (highest first)
+const ranked = [...members].sort((a, b) => b.readiness - a.readiness);
+
+// ── RING ARC SVG ──
+function ringArc(score, color, size=76) {
+  const r = size/2 - 8, cx = size/2, cy = size/2;
+  const circ = 2 * Math.PI * r;
+  const fill = (score / 100) * circ;
+  const gap  = circ - fill;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#1e3a56" stroke-width="6"/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="6"
+      stroke-dasharray="${fill} ${gap}"
+      stroke-dashoffset="${circ * 0.25}"
+      stroke-linecap="round"
+      style="filter:drop-shadow(0 0 5px ${color}88)"/>
+  </svg>`;
+}
+
+// ── RENDER MEMBER CARDS ──
+function renderMemberCards() {
+  document.getElementById('member-cards').innerHTML = ranked.map((m, i) => `
+    <div class="member-card rank-${i+1}">
+      <div class="rank-badge">${i+1}</div>
+      <div class="avatar" style="background:${m.color}22;color:${m.color}">${m.id}</div>
+      <div class="member-name">${m.name}</div>
+      <div class="member-role">${m.role}</div>
+      <div class="ring-container">
+        ${ringArc(m.readiness, m.color)}
+        <div class="ring-score" style="color:${m.color}">${m.readiness}</div>
+      </div>
+      <div class="score-label">Readiness</div>
+      <div class="mini-metrics">
+        <div class="mini-metric">
+          <div class="val" style="color:#8BADC8">${m.sleep}</div>
+          <div class="lbl">Sleep</div>
+        </div>
+        <div class="mini-metric">
+          <div class="val" style="color:#E06060">${m.hrv}</div>
+          <div class="lbl">HRV ms</div>
+        </div>
+        <div class="mini-metric">
+          <div class="val" style="color:#4CAF8A">${(m.steps/1000).toFixed(1)}k</div>
+          <div class="lbl">Steps</div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// ── SIDEBAR MEMBERS ──
+function renderSidebarMembers() {
+  document.getElementById('sidebar-members').innerHTML = ranked.map(m => `
+    <div class="team-member-nav">
+      <div class="tav" style="background:${m.color}28;color:${m.color}">${m.id}</div>
+      ${m.name}
+    </div>`).join('');
+}
+
+// ── CATEGORY LEADERS ──
+function renderCategoryLeaders() {
+  const cats = [
+    { id:'sleep', key:'sleep',     max:100,   color:'#8BADC8' },
+    { id:'ready', key:'readiness', max:100,   color:'#C9A84C' },
+    { id:'hrv',   key:'hrv',       max:90,    color:'#E06060' },
+    { id:'steps', key:'steps',     max:15000, color:'#4CAF8A' },
+  ];
+  cats.forEach(({id, key, max, color}) => {
+    const sorted = [...members].sort((a,b) => b[key]-a[key]);
+    document.getElementById(`${id}-winner`).textContent = sorted[0].name;
+    document.getElementById(`${id}-bars`).innerHTML = sorted.map(m => {
+      const pct = Math.round((m[key]/max)*100);
+      const val = key==='steps' ? m[key].toLocaleString() : m[key];
+      return `<div class="mini-bar-row">
+        <div class="mini-bar-label"><span>${m.id}</span><span style="color:${color}">${val}</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
+      </div>`;
+    }).join('');
+  });
+}
+
+// ── WEEKLY CHART ──
+function renderWeeklyChart() {
+  const ctx = document.getElementById('weeklyChart').getContext('2d');
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: days,
+      datasets: ranked.map(m => ({
+        label: m.name,
+        data: days.map(() => Math.round(m.readiness * 0.88 + Math.random() * 14)),
+        borderColor: m.color,
+        backgroundColor: m.color + '18',
+        tension: 0.4, fill: false,
+        borderWidth: 2, pointRadius: 3,
+        pointBackgroundColor: m.color,
+      }))
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid:{color:'#1e3a56'}, ticks:{color:'#7A9BB8',font:{size:11}} },
+        y: { grid:{color:'#1e3a56'}, ticks:{color:'#7A9BB8',font:{size:11}}, min:50, max:100 }
+      }
+    }
+  });
+}
+
+// ── QUARTERLY DATA & RENDER ──
+const qData = {
+  sleep: [
+    {m:'Nadia',    id:'N', color:COLORS.Nadia,    prev:74, curr:88, delta:14},
+    {m:'Lawrence', id:'L', color:COLORS.Lawrence,  prev:78, curr:85, delta:7},
+    {m:'Danny',    id:'D', color:COLORS.Danny,     prev:76, curr:82, delta:6},
+    {m:'Kathrina', id:'K', color:COLORS.Kathrina,  prev:74, curr:79, delta:5},
+    {m:'Tracy',    id:'T', color:COLORS.Tracy,     prev:68, curr:71, delta:3},
+  ],
+  readiness: [
+    {m:'Nadia',    id:'N', color:COLORS.Nadia,    prev:80, curr:91, delta:11},
+    {m:'Kathrina', id:'K', color:COLORS.Kathrina,  prev:74, curr:83, delta:9},
+    {m:'Danny',    id:'D', color:COLORS.Danny,     prev:81, curr:88, delta:7},
+    {m:'Lawrence', id:'L', color:COLORS.Lawrence,  prev:72, curr:78, delta:6},
+    {m:'Tracy',    id:'T', color:COLORS.Tracy,     prev:69, curr:74, delta:5},
+  ],
+  hrv: [
+    {m:'Lawrence', id:'L', color:COLORS.Lawrence,  prev:58, curr:67, delta:9},
+    {m:'Nadia',    id:'N', color:COLORS.Nadia,    prev:54, curr:62, delta:8},
+    {m:'Danny',    id:'D', color:COLORS.Danny,     prev:51, curr:58, delta:7},
+    {m:'Kathrina', id:'K', color:COLORS.Kathrina,  prev:49, curr:55, delta:6},
+    {m:'Tracy',    id:'T', color:COLORS.Tracy,     prev:40, curr:44, delta:4},
+  ],
+  steps: [
+    {m:'Kathrina', id:'K', color:COLORS.Kathrina,  prev:9200,  curr:13100, delta:3900},
+    {m:'Nadia',    id:'N', color:COLORS.Nadia,    prev:8500,  curr:11240, delta:2740},
+    {m:'Danny',    id:'D', color:COLORS.Danny,     prev:7800,  curr:9820,  delta:2020},
+    {m:'Lawrence', id:'L', color:COLORS.Lawrence,  prev:7100,  curr:8600,  delta:1500},
+    {m:'Tracy',    id:'T', color:COLORS.Tracy,     prev:6200,  curr:7340,  delta:1140},
+  ],
+};
+
+function renderQuarterly() {
+  const keyMap = { sleep:'sleep', readiness:'ready', hrv:'hrv', steps:'steps' };
+  Object.entries(qData).forEach(([key, rows]) => {
+    const elId = `q-${keyMap[key]}-rows`;
+    document.getElementById(elId).innerHTML = rows.map(r => {
+      const deltaStr = key === 'steps' ? r.delta.toLocaleString() : `+${r.delta}`;
+      const fromStr  = key === 'steps'
+        ? `${r.prev.toLocaleString()} → ${r.curr.toLocaleString()}`
+        : `${r.prev} → ${r.curr}`;
+      return `<div class="improvement-row">
+        <div class="ir-person">
+          <div class="ir-avatar" style="background:${r.color}22;color:${r.color}">${r.id}</div>
+          <div class="ir-name">${r.m}</div>
+        </div>
+        <div>
+          <div class="ir-delta delta-pos">${key==='steps'?'+'+r.delta.toLocaleString():'+'+r.delta}</div>
+          <div class="ir-from">${fromStr}</div>
+        </div>
+      </div>`;
+    }).join('');
+  });
+
+  // 5-quarter trend chart
+  const ctx = document.getElementById('quarterlyChart').getContext('2d');
+  const quarters = ['Q1 \'25','Q2 \'25','Q3 \'25','Q4 \'25','Q1 \'26'];
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: quarters,
+      datasets: members.map(m => ({
+        label: m.name,
+        data: quarters.map((_, i) => Math.round(m.readiness - 14 + i * 3.5 + (Math.random()*4-2))),
+        borderColor: m.color,
+        backgroundColor: m.color + '10',
+        tension: 0.4, fill: false,
+        borderWidth: 2, pointRadius: 5,
+        pointBackgroundColor: m.color,
+      }))
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: true, labels: { color:'#7A9BB8', font:{size:11}, boxWidth:10 } } },
+      scales: {
+        x: { grid:{color:'#1e3a56'}, ticks:{color:'#7A9BB8',font:{size:11}} },
+        y: { grid:{color:'#1e3a56'}, ticks:{color:'#7A9BB8',font:{size:11}}, min:60, max:100 }
+      }
+    }
+  });
+}
+
+// ── TREND CHARTS ──
+function renderTrendCharts() {
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  document.getElementById('trend-legend').innerHTML = members.map(m =>
+    `<div class="legend-item"><div class="legend-dot" style="background:${m.color}"></div>${m.name}</div>`
+  ).join('');
+
+  [[  'sleepTrendChart','sleep',10],
+    ['hrvTrendChart','hrv',12],
+    ['stepsTrendChart','steps',1800]
+  ].forEach(([id, key, spread]) => {
+    const ctx = document.getElementById(id).getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: days,
+        datasets: members.map(m => ({
+          label: m.name,
+          data: days.map(() => Math.round(m[key] - spread/2 + Math.random()*spread)),
+          borderColor: m.color, backgroundColor: m.color+'14',
+          tension: 0.4, fill: false, borderWidth: 2, pointRadius: 3,
+          pointBackgroundColor: m.color,
+        }))
+      },
+      options: {
+        responsive: true,
+        plugins: { legend:{display:false} },
+        scales: {
+          x: { grid:{color:'#1e3a56'}, ticks:{color:'#7A9BB8',font:{size:11}} },
+          y: { grid:{color:'#1e3a56'}, ticks:{color:'#7A9BB8',font:{size:11}} }
+        }
+      }
+    });
+  });
+}
+
+// ── BADGES TABLE ──
+function renderBadgesTable() {
+  document.getElementById('badges-tbody').innerHTML =
+    [...members].sort((a,b) => b.streak - a.streak).map(m => `
+      <tr>
+        <td><span style="color:${m.color}">${m.name}</span></td>
+        <td><span class="pill pill-green">${m.streak} days 🔥</span></td>
+        <td>${m.badges} earned</td>
+        <td>${m.prs} PRs</td>
+        <td><span class="pill pill-gold">${m.topBadge}</span></td>
+      </tr>`).join('');
+}
+
+// ── NAVIGATION ──
+function setNav(el, page) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+}
+function setSubTab(el) {
+  el.closest('.tabs').querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+function setQ(el) {
+  document.querySelectorAll('.q-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ── INIT ──
+renderMemberCards();
+renderSidebarMembers();
+renderCategoryLeaders();
+renderWeeklyChart();
+renderQuarterly();
+renderTrendCharts();
+renderBadgesTable();
+</script>
+</body>
+</html>

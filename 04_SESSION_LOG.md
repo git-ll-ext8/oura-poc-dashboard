@@ -1,55 +1,28 @@
-# SESSION LOG: Oura POC Planning — updated 2026-07-08 (Wed) 5:45 PM
-**Feed this file to a new LLM session for full context.**
+# SESSION LOG: Oura POC — updated Wed 2026-07-08 ~9:30 PM (END OF DAY)
+**Feed this file to a new LLM session for full context. Demo: TOMORROW Thu 12:00 PM at restaurant lunch.**
 
-## Project
-CentreCourt Ops wellness POC. Thesis: healthy employees are higher-functioning. Web dashboard (leaderboard) built from Danny's dark-mode HTML mockup. **Hard deadline: Thu 2026-07-09 12:00 PM ET, live URL on boardroom screen.** Bet: working POC → Danny buys Oura Ring 5 + 1-yr subs for Lawrence, Kat, and himself.
+## Bottom line
+Phases A+B are LIVE IN PRODUCTION: https://oura-poc-dashboard.vercel.app/ — dark-mode leaderboard, real Oura sandbox data via InstantDB, live-updating, token-lock security VERIFIED by test. A /story page (non-technical build narrative) is also live at /story. **Phase C (real OAuth) is tomorrow's build and, per Danny's bar, the actual win condition: Tracy's real ring data must be flowing by the demo.**
 
-## People
-- Danny Chan — VP Ops, sponsor, made the mockup
-- Lawrence Liao — IT Manager, building the POC (this project's owner)
-- Kat Dineros — Office Manager | Nadia Mercuri — HR Recruiter | Tracy Li — Office Assistant
-- Laura Cortez — Danny's wife, EXTERNAL tester (has Ring 4; exclude from mgmt reporting)
-- Ring 4 owners today: Nadia, Tracy, Laura. Others get Ring 5 if bet is won.
+## Infrastructure (all working, all accounts Lawrence's)
+- GitHub: github.com/git-ll-ext8/oura-poc-dashboard (public; STATUS.md at root = supervision channel; auto-deploys to Vercel on push to master)
+- Vercel: project oura-poc-dashboard, team Lawrence-POC (Hobby), 2FA enabled. Env var set: NEXT_PUBLIC_INSTANT_APP_ID (Production+Preview, marked safe)
+- InstantDB: app oura-poc-dashboard, App ID 96b57038-cc1d-4db6-9b66-7a86d802d443. Admin token in .env.local ONLY (gitignored). ouraTokens entity client-locked in perms — verified empty from client despite real row existing
+- Builder: Claude Code Desktop "</> Code" tab, folder C:\AI.Dev\Misc\Oura.Ring.App\510.Claude.Code, model Sonnet (token conservation). Codex fallback bundle in ..\520.Codex (resume-from-repo logic built in)
+- Session token limit hit ~9 PM Wed; resets 10:40 PM. No impact on 7:30 AM start.
 
-## Decisions made this session
-1. **Demo bar:** sandbox data for all 5 team members + **Tracy** signed in live via real OAuth.
-2. **Hosting:** Vercel (fastest; DO considered for later, Hostinger rejected).
-3. **Stack:** Next.js 15 + TypeScript + Tailwind + Recharts + InstantDB (realtime DB) on Vercel — switched from Neon Postgres per session discussion; ouraTokens entity client-locked, Admin SDK server-only. Expo mobile is phase 2.
-4. **Leaderboard privacy:** composite scores only (readiness/sleep/activity), per-metric opt-in toggles, raw physiology private-view only.
-5. **Thesis measurement:** weekly 1-min MS Forms pulse survey starts NOW (pre-ring baseline) + absence data; self-comparison before/after design; honest n=5 framing.
-6. **Builder:** PRIMARY = Claude Code (Desktop "</> Code" tab) in C:\AI.Dev\Misc\Oura.Ring.App\510.Claude.Code. FALLBACK = Codex desktop app in ..\520.Codex (self-contained bundle). Both share one GitHub repo / Vercel / InstantDB; handoff via repo + this session log. Token rule: Sonnet/mid-tier for scaffolding, big models only for hard bugs.
+## Key decisions today
+1. Demo bar RAISED by Lawrence: sandbox-only no longer wins the bet — Tracy's REAL data must flow. Phase C promoted from stretch to must-have.
+2. Demo format: restaurant lunch, laptop on phone hotspot. Wow moment = Nadia signs in LIVE at the table, flips her own consent toggles, leaderboard re-ranks itself on the open screen, numbers cross-checked against her Oura app. Mobile responsiveness demoted to bonus.
+3. /story page added for non-technical effort narrative (from What_Was_Actually_Built doc).
+4. Phase C acceptance criterion: consent completed → real scores appear on already-open leaderboard within ~30s, no refresh, LIVE badge.
 
-## Verified API ground truth (2026-07-06)
-- Oura PATs deprecated Dec 2025 → OAuth2 code flow mandatory (authorize: cloud.ouraring.com/oauth/authorize, token: api.ouraring.com/oauth/token).
-- Sandbox endpoints: /v2/sandbox/usercollection/* (fake data, no account needed).
-- ≤10 users needs no Oura approval; per-scope user consent built in.
-- Active Oura Membership required or API returns 403.
-- New developer portal released 2025; account without ring is possible.
+## Open items (tonight/tomorrow)
+- [ ] Lawrence tonight: create Oura account via BROWSER at cloud.ouraring.com (mobile app blocks without ring) → register API app → Client ID/Secret. Redirect URIs: https://oura-poc-dashboard.vercel.app/api/auth/oura/callback AND http://localhost:3000/api/auth/oura/callback
+- [ ] FALLBACK if account needs a ring: Tracy registers the app tomorrow 8 AM (script in runbook)
+- [ ] RESEARCH (Claude, ~7 AM or tonight 10:40+): ground-truth Oura docs on ring-free dev accounts/sandbox — Lawrence recalls reading it's possible
+- [ ] Tracy: open Oura app on waking (sync!) + 9:30 sign-in = dress rehearsal
+- [ ] Nadia: casual login check + has phone at lunch (don't spoil surprise)
+- [x] Vercel 2FA enabled · [x] /story live · [x] token-lock verified · [x] effort doc written
 
-## Open action items (Lawrence)
-- [ ] **Phase C time:** create Oura account (mobile app, skip pairing) → cloud.ouraring.com → register API app → Client ID/Secret. Fallback: Tracy registers.
-- [x] Tracy Oura Membership CONFIRMED active. Still needed: her 10-min availability (Thu AM ok) for OAuth sign-in.
-- [x] Danny's HTML mockup in place: HTML.Dashboard.Mockup\ subfolder of BOTH work folders.
-- [ ] Create MS Forms pulse survey + Power Automate Friday reminder (baseline starts this week).
-- [ ] Ask Nadia to sanity-check the consent note (see thesis doc §5).
-
-## Documents produced
-- 01_THESIS_Healthy_Workers.md
-- 02_IMPLEMENTATION_PLAN.md (LLM-agnostic build spec, phases A–D, risk register, demo runbook)
-- 03_TECH_STACK.md
-- 05_PROMPT_RESTART.md
-
-## Next session goals
-Claude Code executes Phases 0→A→B tonight (Wed), Phase C stretch. Mockup still not provided — fallback design authorized.
-
-## Build session — 2026-07-08 (Wed evening), Claude Code
-**See STATUS.md at repo root for the live, up-to-date phase/blocker tracker — this section is a point-in-time recap.**
-
-- Phase 0: Node/npm/Git already present, nothing installed.
-- Phase A: Next.js 16 + TypeScript + Tailwind v4 + Recharts scaffolded, dashboard pixel-matches Danny's mockup (found at `HTML.Dashboard.Mockup\Oura.Dashboard.Mockup.(Danny).html`). Git repo created and pushed: https://github.com/git-ll-ext8/oura-poc-dashboard (gh CLI installed via winget, device-code browser auth completed by Lawrence).
-- Phase B: InstantDB app connected (id `96b57038-cc1d-4db6-9b66-7a86d802d443`), schema + perms pushed (`ouraTokens` client-locked FIRST, before any token exists), seed script pulls real Oura sandbox data, Leaderboard AND Weekly Trends tabs read live via `db.useQuery`, Sidebar ranking fixed to match. Token-lock verified for real in a browser (fake row written via Admin SDK, confirmed invisible to client query, deleted).
-- **Phase B BANKED — live and deployed:** https://oura-poc-dashboard.vercel.app/ — confirmed by Lawrence in-browser. Bet-winning baseline (Phase A+B) is secured.
-- **Stopped for the night per Lawrence's explicit instruction.** Phase C (real Oura OAuth for Tracy) intentionally NOT started — blocked on Lawrence obtaining an Oura Client ID/Secret. See STATUS.md "Next step" for the exact Phase C sequence to resume with.
-- Quarterly Growth and Achievements tabs remain static/hardcoded by design (would need fabricated historical data, out of scope per CLAUDE.md §5) — not a gap, a scope decision. (Weekly Trends, unlike these two, WAS wired live — same `dailyScores` we already fetch, not fabricated history.)
-- **Post-Phase-B addition, same night:** `/story` page built per direct instruction — converts `docs/STORY.md` (Lawrence's non-technical delivery summary) into a polished page matching the dashboard's design, with a subtle "The Story" link at the bottom of the sidebar. Verified working, no regression to the leaderboard.
-- Tooling note: hit a stale Turbopack dev-server issue tonight (serving old CSS after edits despite the preview tool reporting a restart — the real OS process wasn't actually killed until force-stopped by PID). Production `npm run build` output was correct throughout; this only affected local dev preview. See STATUS.md notes for the fix.
+## Tomorrow = 06_DEMO_DAY_RUNBOOK.md (timeline, all prompts pre-written, fallbacks, cleanup list)

@@ -8,6 +8,6 @@ Read CLAUDE.md and all MD files in this folder. It is Wednesday evening; the dem
 ## For a new Claude chat session (planning/rescue):
 ---
 I'm Lawrence, IT Manager at CentreCourt. Attached SESSION_LOG has full context on my Oura Ring wellness POC dashboard (demo Thu 2026-07-09 12 PM ET, Vercel URL on boardroom screen). Builder is Claude Code via the Desktop app on C:\OuraPOC. Rules: search the web for current Oura API/InstantDB facts before relying on memory; keep responses short; step-by-step, one thing at a time; minimize my manual work; anything error-prone must log to a file I can upload back.
-Where we left off: [FILL IN]
+Where we left off: Phases A+B live in production; Phase C (real Oura OAuth for Tracy) is demo-day morning build — see 06_DEMO_DAY_RUNBOOK.md
 Today I want to: [FILL IN]
 ---

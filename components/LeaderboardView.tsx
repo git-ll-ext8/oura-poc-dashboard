@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { RingArc } from "./RingArc";
 import { db } from "@/lib/instant";
@@ -170,17 +170,31 @@ function MemberCard({ member, rank }: { member: LiveMember; rank: number }) {
   const showSleep = isMetricVisible(member, "sleep");
   const showActivity = isMetricVisible(member, "activity");
 
+  const wasLive = useRef(member.isLive);
+  const [justWentLive, setJustWentLive] = useState(false);
+  useEffect(() => {
+    const previously = wasLive.current;
+    wasLive.current = member.isLive;
+    if (!previously && member.isLive) {
+      setJustWentLive(true);
+      const t = setTimeout(() => setJustWentLive(false), 2600);
+      return () => clearTimeout(t);
+    }
+  }, [member.isLive]);
+
   return (
-    <div className={`member-card rank-${rank}`}>
+    <div className={`member-card rank-${rank}${justWentLive ? " just-went-live" : ""}`}>
       <div className="rank-badge">{rank}</div>
       <div className="avatar" style={{ background: `${member.color}22`, color: member.color }}>
         {member.shortId}
       </div>
-      <div className="member-name">
-        {member.name}
-        {member.isLive && <span className="live-badge">LIVE</span>}
-      </div>
+      <div className="member-name">{member.name}</div>
       <div className="member-role">{member.role}</div>
+      {member.isLive ? (
+        <div className="source-badge source-badge-live">● LIVE — real Oura Ring data</div>
+      ) : (
+        <div className="source-badge source-badge-demo">DEMO DATA</div>
+      )}
       <div className="ring-container">
         <RingArc score={showReadiness ? member.readiness : 0} color={showReadiness ? member.color : "#3A5570"} />
         <div className="ring-score" style={{ color: showReadiness ? member.color : "var(--text-dim)" }}>

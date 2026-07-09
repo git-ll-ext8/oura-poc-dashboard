@@ -4,7 +4,7 @@
 **Deadline:** Thu 2026-07-09 12:00 PM ET — live demo on boardroom screen
 
 ## Current phase
-**Phase B is fully banked.** Deployed to Vercel, confirmed live by Lawrence in-browser. Holding here for the night — NOT starting Phase C (needs Oura credentials Lawrence hasn't provided yet, and CLAUDE.md's phase discipline says bank before advancing anyway).
+**Phase B is fully banked** (deployed, confirmed live by Lawrence in-browser). One post-Phase-B addition also shipped tonight: a `/story` page for non-technical stakeholders explaining what was actually built. Holding here for the night — NOT starting Phase C (needs Oura credentials Lawrence hasn't provided yet).
 
 ## Banked milestones
 - [x] Phase 0 — Environment verified (Node v22.23.1, npm 11.6.4, Git 2.55.0 already present; nothing installed/modified)
@@ -20,6 +20,7 @@
 - [x] Sidebar team list now ranked from the same live query instead of stale hardcoded order — was a real (if minor) inconsistency, now fixed
 - [x] Dead code removed from `lib/data.ts` (`ranked`, `weeklySeries`, `weeklyPointStandings`, unused `DAYS`/`SPREAD`) now that Leaderboard/Trends/Sidebar no longer read from it — `lib/data.ts` is now used only by Quarterly Growth and Achievements (deliberately still static, see notes below)
 - [x] **Vercel import + first deploy — LIVE.** https://oura-poc-dashboard.vercel.app/ — confirmed by Lawrence in-browser rendering live InstantDB data in production. **✅ BET-WINNING BASELINE BANKED (Phase A+B).**
+- [x] **`/story` page shipped** — `docs/STORY.md` (Lawrence's non-technical delivery summary) converted into a polished page at `/story`, matching the dashboard's dark-mode design language: comparison table, numbered plain-terms build list, and the "AI was the construction crew..." line as a featured pull-quote banner. Subtle "The Story" link added to the bottom of the sidebar nav (works from any page — the 4 view items now navigate back to `/` if clicked while elsewhere, no behavior change on the dashboard itself). Verified: local build/lint clean, both routes prerender static, leaderboard confirmed unregressed with live data after the change.
 - [ ] Phase C (stretch) — Real OAuth for Tracy — not started, on hold
 
 ## Live URLs
@@ -45,3 +46,5 @@ Note: my own automated re-check of the production URL was inconclusive (WebFetch
 - Sandbox fixture data is a fixed canned dataset (same values regardless of caller) — the seed script (`scripts/seed.mjs`) applies a small deterministic per-member offset so the leaderboard doesn't show 5 identical members. This is a real cosmetic/scope decision, not a bug.
 - Dropped "HRV ms" as a live metric — Oura's readiness/sleep/activity sandbox endpoints (the only ones in scope per 02_IMPLEMENTATION_PLAN.md §1) don't return a raw HRV-in-ms field. Replaced the mockup's "Best HRV" category card with "Best Activity" on the Leaderboard, and "HRV (ms)" with "Activity Score" on Weekly Trends — both now live from InstantDB. Quarterly Growth and Achievements still show the original mockup's static numbers (including HRV) from `lib/data.ts` — deliberately NOT wired, since they need fabricated multi-quarter history / streak tracking that's out of scope (CLAUDE.md §5, "historical analytics").
 - `.env.local` holds `NEXT_PUBLIC_INSTANT_APP_ID` and `INSTANT_ADMIN_TOKEN` — gitignored, confirmed never staged.
+- New route `app/story/page.tsx` + `components/StoryView.tsx` — a stakeholder-facing page, source content lives in `docs/STORY.md`. Not linked from CLAUDE.md's spec, added per direct instruction outside the phase plan.
+- Gotcha hit tonight: the local `next dev` Turbopack server can go stale (kept serving pre-edit CSS/JS) without erroring, and stopping/restarting via the preview tool's serverId didn't actually kill the underlying OS process — had to `Stop-Process` the actual node PIDs (find via `netstat`/`Get-CimInstance Win32_Process`) before a real restart picked up recent changes. If a change looks "not applied" in local dev despite correct source and a clean `npm run build` output, suspect this before assuming a code bug.

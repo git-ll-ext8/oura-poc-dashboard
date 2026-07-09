@@ -4,7 +4,7 @@
 **Deadline:** Thu 2026-07-09 12:00 PM ET — live demo on boardroom screen
 
 ## Current phase
-Phase B core done (Leaderboard tab reads live from InstantDB, sandbox-sourced). Blocked on Vercel import for the live URL — not yet confirmed banked.
+Phase B core done and security-verified (Leaderboard reads live from InstantDB, token-lock confirmed in-browser). Working autonomously through the rest of Phase B while Lawrence completes the Vercel import in parallel.
 
 ## Banked milestones
 - [x] Phase 0 — Environment verified (Node v22.23.1, npm 11.6.4, Git 2.55.0 already present; nothing installed/modified)
@@ -15,8 +15,8 @@ Phase B core done (Leaderboard tab reads live from InstantDB, sandbox-sourced). 
 - [x] `instant.perms.ts` pushed — **ouraTokens fully client-locked** (view/create/update/delete = "false") before any real token exists
 - [x] Seed script (`npm run seed`, Admin SDK) pulls live Oura sandbox data (readiness/sleep/activity/steps) for all 5 members, writes `dailyScores` with `source: "sandbox"` — re-run safe (wipes + recreates)
 - [x] Leaderboard tab rewired to `db.useQuery` — live member cards, category leaders, and weekly chart, sourced from InstantDB (not hardcoded)
-- [ ] **Vercel import + first deploy — NOT YET CONFIRMED.** Lawrence has a Vercel account linked to GitHub but hasn't confirmed the import is done or given a URL.
-- [ ] Formal token-lock devtools verification (mandatory Phase C gate — deferred until a real token row exists to test against; permission rule is already live)
+- [x] **Token-lock verified in a real browser**: wrote a fake row to `ouraTokens` via Admin SDK, confirmed the client SDK's `db.useQuery({ouraTokens:{}})` returns `rows: []` (no leak, no error) despite the row existing, then deleted the fake row. Reusable scripts kept at `scripts/write-test-token.mjs` / `scripts/delete-test-token.mjs` for re-verification before the Phase C demo gate.
+- [ ] **Vercel import + first deploy — NOT YET CONFIRMED.** Lawrence has a Vercel account linked to GitHub, import in progress.
 - [ ] Phase C (stretch) — Real OAuth for Tracy
 
 ## Live URLs

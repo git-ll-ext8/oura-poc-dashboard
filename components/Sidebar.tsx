@@ -13,6 +13,13 @@ const NAV_ITEMS: { id: NavView; icon: string; label: string }[] = [
   { id: "badges", icon: "🎖️", label: "Achievements" },
 ];
 
+// POC-only presenter links — flagged for removal before any production/real-team rollout.
+const PRESENTER_LINKS = [
+  { href: "/story", label: "The Story" },
+  { href: "/script", label: "Presenter Script" },
+  { href: "/thesis", label: "Thesis" },
+];
+
 export function Sidebar({
   active,
   onNavigate,
@@ -72,13 +79,18 @@ export function Sidebar({
         </div>
       </div>
 
-      <div className="nav-section" style={{ marginTop: "auto", paddingBottom: 4 }}>
-        <div
-          className={`nav-item nav-item-subtle${pathname === "/story" ? " active" : ""}`}
-          onClick={() => router.push("/story")}
-        >
-          <span className="icon">📖</span> The Story
-        </div>
+      <div className="presenter-links" style={{ marginTop: "auto" }}>
+        {PRESENTER_LINKS.map((link, i) => (
+          <span key={link.href}>
+            <span
+              className={`presenter-link${pathname === link.href ? " active" : ""}`}
+              onClick={() => router.push(link.href)}
+            >
+              {link.label}
+            </span>
+            {i < PRESENTER_LINKS.length - 1 && <span className="presenter-link-sep"> · </span>}
+          </span>
+        ))}
       </div>
 
       <div className="sidebar-footer">

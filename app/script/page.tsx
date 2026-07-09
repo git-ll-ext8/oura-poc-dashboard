@@ -1,13 +1,13 @@
 "use client";
 
+import { ScriptView } from "@/components/ScriptView";
 import { Sidebar } from "@/components/Sidebar";
-import { StoryView } from "@/components/StoryView";
 
-export default function StoryPage() {
+export default function ScriptPage() {
   return (
     <>
       <Sidebar active="leaderboard" onNavigate={() => {}} />
-      <StoryView />
+      <ScriptView />
     </>
   );
 }

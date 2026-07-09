@@ -4,11 +4,17 @@ import { useState } from "react";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { RingArc } from "./RingArc";
 import { db } from "@/lib/instant";
-import { buildLiveMembers, weekdayLabel, type LiveMember } from "@/lib/live";
+import { buildLiveMembers, isMetricVisible, weekdayLabel, type LiveMember, type MetricKey } from "@/lib/live";
 
 const SUB_TABS = ["Today", "This Week", "This Month"];
 
 type CategoryKey = "sleep" | "readiness" | "activity" | "steps";
+const METRIC_FOR_CATEGORY: Record<CategoryKey, MetricKey> = {
+  sleep: "sleep",
+  readiness: "readiness",
+  activity: "activity",
+  steps: "activity",
+};
 
 const CATEGORIES: { id: string; key: CategoryKey; icon: string; label: string; max: number; color: string }[] = [
   { id: "sleep", key: "sleep", icon: "😴", label: "Best Sleep Score", max: 100, color: "#8BADC8" },
@@ -23,7 +29,7 @@ function formatVal(key: CategoryKey, value: number) {
 
 export function LeaderboardView() {
   const [subTab, setSubTab] = useState(0);
-  const { isLoading, error, data } = db.useQuery({ members: {}, dailyScores: {} });
+  const { isLoading, error, data } = db.useQuery({ members: {}, dailyScores: {}, consents: {} });
 
   if (isLoading) {
     return (
@@ -40,7 +46,7 @@ export function LeaderboardView() {
     );
   }
 
-  const members = buildLiveMembers(data.members, data.dailyScores);
+  const members = buildLiveMembers(data.members, data.dailyScores, data.consents);
   const ranked = [...members].sort((a, b) => b.readiness - a.readiness);
   const dayLabels = (ranked[0]?.weekly ?? []).map((s) => weekdayLabel(s.day));
   const chartData = dayLabels.map((day, i) => {
@@ -58,7 +64,7 @@ export function LeaderboardView() {
         <div>
           <div className="page-eyebrow">CentreCourt · Wellness Challenge</div>
           <div className="page-title">Team Leaderboard</div>
-          <div className="page-date">Live from InstantDB · sandbox-sourced</div>
+          <div className="page-date">Live from InstantDB · sandbox + real Oura data</div>
         </div>
         <div className="header-actions">
           <button className="btn btn-ghost">⬇ Export</button>
@@ -88,7 +94,9 @@ export function LeaderboardView() {
       <div className="section-title">Today&apos;s Category Leaders</div>
       <div className="metrics-row">
         {CATEGORIES.map((cat) => {
-          const sorted = [...members].sort((a, b) => b[cat.key] - a[cat.key]);
+          const metric = METRIC_FOR_CATEGORY[cat.key];
+          const visible = members.filter((m) => isMetricVisible(m, metric));
+          const sorted = [...visible].sort((a, b) => b[cat.key] - a[cat.key]);
           return (
             <div className="metric-card" key={cat.id}>
               <div className="m-icon">{cat.icon}</div>
@@ -109,6 +117,7 @@ export function LeaderboardView() {
                     </div>
                   );
                 })}
+                {sorted.length === 0 && <div className="private-metric">All private</div>}
               </div>
             </div>
           );
@@ -157,41 +166,65 @@ export function LeaderboardView() {
 }
 
 function MemberCard({ member, rank }: { member: LiveMember; rank: number }) {
+  const showReadiness = isMetricVisible(member, "readiness");
+  const showSleep = isMetricVisible(member, "sleep");
+  const showActivity = isMetricVisible(member, "activity");
+
   return (
     <div className={`member-card rank-${rank}`}>
       <div className="rank-badge">{rank}</div>
       <div className="avatar" style={{ background: `${member.color}22`, color: member.color }}>
         {member.shortId}
       </div>
-      <div className="member-name">{member.name}</div>
+      <div className="member-name">
+        {member.name}
+        {member.isLive && <span className="live-badge">LIVE</span>}
+      </div>
       <div className="member-role">{member.role}</div>
       <div className="ring-container">
-        <RingArc score={member.readiness} color={member.color} />
-        <div className="ring-score" style={{ color: member.color }}>
-          {member.readiness}
+        <RingArc score={showReadiness ? member.readiness : 0} color={showReadiness ? member.color : "#3A5570"} />
+        <div className="ring-score" style={{ color: showReadiness ? member.color : "var(--text-dim)" }}>
+          {showReadiness ? member.readiness : "—"}
         </div>
       </div>
-      <div className="score-label">Readiness</div>
+      <div className="score-label">{showReadiness ? "Readiness" : "Readiness (Private)"}</div>
       <div className="mini-metrics">
         <div className="mini-metric">
-          <div className="val" style={{ color: "#8BADC8" }}>
-            {member.sleep}
-          </div>
+          {showSleep ? (
+            <div className="val" style={{ color: "#8BADC8" }}>
+              {member.sleep}
+            </div>
+          ) : (
+            <div className="val private-metric">—</div>
+          )}
           <div className="lbl">Sleep</div>
         </div>
         <div className="mini-metric">
-          <div className="val" style={{ color: "#E06060" }}>
-            {member.activity}
-          </div>
+          {showActivity ? (
+            <div className="val" style={{ color: "#E06060" }}>
+              {member.activity}
+            </div>
+          ) : (
+            <div className="val private-metric">—</div>
+          )}
           <div className="lbl">Activity</div>
         </div>
         <div className="mini-metric">
-          <div className="val" style={{ color: "#4CAF8A" }}>
-            {(member.steps / 1000).toFixed(1)}k
-          </div>
+          {showActivity ? (
+            <div className="val" style={{ color: "#4CAF8A" }}>
+              {(member.steps / 1000).toFixed(1)}k
+            </div>
+          ) : (
+            <div className="val private-metric">—</div>
+          )}
           <div className="lbl">Steps</div>
         </div>
       </div>
+      {!member.isLive && (
+        <a className="signin-oura-btn" href={`/api/auth/oura/login?member=${member.shortId}`}>
+          Sign in with Oura
+        </a>
+      )}
     </div>
   );
 }

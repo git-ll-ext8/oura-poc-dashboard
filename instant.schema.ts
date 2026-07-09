@@ -38,6 +38,7 @@ const _schema = i.schema({
 });
 
 type _AppSchema = typeof _schema;
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type -- InstantDB's documented schema re-export pattern
 interface AppSchema extends _AppSchema {}
 const schema: AppSchema = _schema;
 

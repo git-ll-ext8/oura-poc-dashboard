@@ -88,10 +88,6 @@ export const members: Member[] = [
   },
 ];
 
-export const ranked = [...members].sort((a, b) => b.readiness - a.readiness);
-
-export const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
 // Deterministic seeded PRNG so server and client render identical "realistic"
 // variation without a hydration mismatch (Math.random() would differ per render).
 function seedFromString(s: string): number {
@@ -111,26 +107,6 @@ function mulberry32(seed: number) {
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
-}
-
-type MetricKey = "readiness" | "sleep" | "hrv" | "steps";
-
-const SPREAD: Record<MetricKey, number> = {
-  readiness: 14,
-  sleep: 10,
-  hrv: 12,
-  steps: 1800,
-};
-
-export function weeklySeries(member: Member, key: MetricKey): number[] {
-  const rand = mulberry32(seedFromString(member.id + key));
-  const spread = SPREAD[key];
-  return DAYS.map(() => Math.max(0, Math.round(member[key] - spread / 2 + rand() * spread)));
-}
-
-export function weeklyPointStandings(member: Member): number[] {
-  const rand = mulberry32(seedFromString(member.id + "weekly-points"));
-  return DAYS.map(() => Math.round(member.readiness * 0.88 + rand() * 14));
 }
 
 export const QUARTERS = ["Q1", "Q2", "Q3", "Q4"] as const;

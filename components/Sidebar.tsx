@@ -1,6 +1,7 @@
 "use client";
 
-import { ranked } from "@/lib/data";
+import { db } from "@/lib/instant";
+import { buildLiveMembers } from "@/lib/live";
 
 export type NavView = "leaderboard" | "quarterly" | "trends" | "badges";
 
@@ -18,6 +19,11 @@ export function Sidebar({
   active: NavView;
   onNavigate: (view: NavView) => void;
 }) {
+  const { data } = db.useQuery({ members: {}, dailyScores: {} });
+  const ranked = data
+    ? [...buildLiveMembers(data.members, data.dailyScores)].sort((a, b) => b.readiness - a.readiness)
+    : [];
+
   return (
     <nav className="sidebar">
       <div className="sidebar-logo">
@@ -46,7 +52,7 @@ export function Sidebar({
           {ranked.map((m) => (
             <div className="team-member-nav" key={m.id}>
               <div className="tav" style={{ background: `${m.color}28`, color: m.color }}>
-                {m.id}
+                {m.shortId}
               </div>
               {m.name}
             </div>

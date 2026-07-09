@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { db } from "@/lib/instant";
 
@@ -55,6 +56,12 @@ function ConsentPageInner() {
         </div>
       )}
 
+      <div className="consent-privacy-intro">
+        Everything below is OFF by default. Only what you switch ON appears to your team — and you can switch it
+        off or revoke entirely at any time.{" "}
+        <Link href="/privacy">What can this app actually see? →</Link>
+      </div>
+
       <div className="chart-card">
         <div className="section-eyebrow">Your Choice</div>
         <div className="section-title">Per-Metric Sharing — Default Is Private</div>
@@ -77,6 +84,10 @@ function ConsentPageInner() {
       <button className="btn btn-primary" style={{ marginTop: 16 }} onClick={handleSave} disabled={saving}>
         {saved ? "Saved! Redirecting..." : saving ? "Saving..." : "Save & View Leaderboard"}
       </button>
+
+      <Link href="/privacy#how-to-stop" className="consent-revoke-link">
+        How to revoke access completely →
+      </Link>
     </div>
   );
 }

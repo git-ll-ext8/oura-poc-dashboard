@@ -13,11 +13,14 @@ const NAV_ITEMS: { id: NavView; icon: string; label: string }[] = [
   { id: "badges", icon: "🎖️", label: "Achievements" },
 ];
 
-// POC-only presenter links — flagged for removal before any production/real-team rollout.
+// "Privacy" is a permanent link — real users need it regardless of demo/POC status.
+// Everything else in this row is POC-only, flagged for removal before any production/real-team rollout.
 const PRESENTER_LINKS = [
+  { href: "/privacy", label: "Privacy" },
   { href: "/story", label: "The Story" },
   { href: "/script", label: "Presenter Script" },
   { href: "/thesis", label: "Thesis" },
+  { href: "/privacy-slides", label: "Privacy Slides" },
 ];
 
 export function Sidebar({

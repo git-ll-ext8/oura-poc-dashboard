@@ -72,6 +72,19 @@ export function LeaderboardView() {
         </div>
       </div>
 
+      <div className="badge-legend">
+        <div className="badge-legend-item">
+          <span className="source-badge source-badge-live" style={{ animation: "none" }}>
+            ● LIVE — real Oura Ring data
+          </span>
+          <span>= this person&apos;s actual ring data, right now</span>
+        </div>
+        <div className="badge-legend-item">
+          <span className="source-badge source-badge-demo">DEMO DATA</span>
+          <span>= sandbox placeholder, not a real person&apos;s data</span>
+        </div>
+      </div>
+
       <div className="tabs">
         {SUB_TABS.map((t, i) => (
           <button
@@ -170,17 +183,23 @@ function MemberCard({ member, rank }: { member: LiveMember; rank: number }) {
   const showSleep = isMetricVisible(member, "sleep");
   const showActivity = isMetricVisible(member, "activity");
 
-  const wasLive = useRef(member.isLive);
+  // Derived from the latest dailyScores row's source, NOT the persisted members.isLive
+  // flag — this makes the badge self-healing: if oura-sourced rows ever disappear
+  // (revoked access, data cleared), the card automatically falls back to DEMO DATA
+  // without needing any live revocation-detection logic.
+  const isLiveNow = member.source === "oura";
+
+  const wasLive = useRef(isLiveNow);
   const [justWentLive, setJustWentLive] = useState(false);
   useEffect(() => {
     const previously = wasLive.current;
-    wasLive.current = member.isLive;
-    if (!previously && member.isLive) {
+    wasLive.current = isLiveNow;
+    if (!previously && isLiveNow) {
       setJustWentLive(true);
       const t = setTimeout(() => setJustWentLive(false), 2600);
       return () => clearTimeout(t);
     }
-  }, [member.isLive]);
+  }, [isLiveNow]);
 
   return (
     <div className={`member-card rank-${rank}${justWentLive ? " just-went-live" : ""}`}>
@@ -190,7 +209,7 @@ function MemberCard({ member, rank }: { member: LiveMember; rank: number }) {
       </div>
       <div className="member-name">{member.name}</div>
       <div className="member-role">{member.role}</div>
-      {member.isLive ? (
+      {isLiveNow ? (
         <div className="source-badge source-badge-live">● LIVE — real Oura Ring data</div>
       ) : (
         <div className="source-badge source-badge-demo">DEMO DATA</div>
@@ -234,9 +253,14 @@ function MemberCard({ member, rank }: { member: LiveMember; rank: number }) {
           <div className="lbl">Steps</div>
         </div>
       </div>
-      {!member.isLive && (
+      {!isLiveNow && (
         <a className="signin-oura-btn" href={`/api/auth/oura/login?member=${member.shortId}`}>
           Sign in with Oura
+        </a>
+      )}
+      {isLiveNow && (
+        <a className="manage-sharing-link" href={`/api/auth/oura/login?member=${member.shortId}`}>
+          Manage my sharing →
         </a>
       )}
     </div>

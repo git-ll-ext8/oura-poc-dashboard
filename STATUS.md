@@ -4,7 +4,7 @@
 **Deadline:** Thu 2026-07-09 12:00 PM ET — live demo on boardroom screen. Phase C hard deadline: working in production by 11:00 AM.
 
 ## Current phase
-**Phase C code is complete and verified on localhost.** OAuth login→callback→token-storage→real-data-pull→consent flow tested end-to-end with Lawrence's real Oura account (no ring, so the empty-data path was what got exercised — confirmed graceful, no crash). Token-lock re-verified with a REAL token in the table. **Presentation package also shipped** (queued after Phase C, did not block it): data-source badges + live-transition pulse on the leaderboard, plus 3 new slide-deck pages (`/story`, `/script`, `/thesis`) for the demo itself. Only remaining blocker: Lawrence adds Vercel env vars and redeploys, then Tracy tests for real in production.
+**Phase C code is complete. Presentation package + Privacy package both shipped on top of it.** ⚠️ **IMPORTANT DISCOVERY while testing the privacy package — read this first:** the shared InstantDB database already contains a REAL, complete OAuth sign-in for **Tracy (member T)** — 7 days of genuine `source: "oura"` dailyScores (2026-07-03 through 2026-07-09), a real `ouraTokens` row, `members.isLive: true`, and one real consent row (`readiness: true` only — sleep/activity still private, exactly the opt-in behavior this was built for). I did NOT do this — nobody in this conversation reported doing it, and my current dev server's logs (post-restart) have no trace of it. Since InstantDB is one shared database across localhost and production, this either happened on production already (meaning env vars may already be set?) or on a localhost session before a server restart wiped the logs. **Lawrence: please confirm what happened here before the demo** — if this was a deliberate early test, great, the acceptance criterion may already be proven; if not, it's worth understanding before Tracy's "official" demo run. I left this data completely untouched (verified separately with my own synthetic test data on Lawrence's member row, cleaned up after).
 
 ## Banked milestones
 - [x] Phase 0 — Environment verified (Node v22.23.1, npm 11.6.4, Git 2.55.0 already present; nothing installed/modified)
@@ -34,15 +34,19 @@
 - [x] **New `/script` page** — presenter cue cards (`components/ScriptView.tsx`), one big card per step (4 steps + fallback), stage directions in italic muted text, spoken lines in large bold — designed to be advanced with arrow keys while presenting hands-free.
 - [x] **New `/thesis` page** — 5 management-pitch slides (`components/ThesisView.tsx`): the thesis statement, what the POC proves, a 3-segment experiment timeline (Weeks 1-4 baseline / 5-16 leaderboard+challenges / 17 report), honest limits framed as the reason to expand, the ask.
 - [x] Sidebar gained a compact "The Story · Presenter Script · Thesis" text-link row at the bottom — explicitly flagged (in a code comment) as POC-only, to remove before any real-team rollout.
-- [ ] **Vercel env vars — NOT YET ADDED.** See exact names/values below. This is the current blocker before Tracy can test in production.
-- [ ] Tracy's real production sign-in — pending the above
+- [x] **Privacy package shipped**: new `/privacy` article page (what the app can/can't read, what colleagues see, 3 ways to stop with a `#how-to-stop` anchor, honest POC notes) + new `/privacy-slides` 4-slide deck for presenting before anyone signs in. Both linked from `/script` step 2, `/thesis`, and each other.
+- [x] Consent page copy: intro banner above toggles linking to `/privacy`, "How to revoke access completely" link below the button to `/privacy#how-to-stop`. Copy-only, save logic untouched.
+- [x] **Badge fallback made self-healing**: `LeaderboardView.tsx` now derives the LIVE/DEMO badge from `member.source === "oura"` (the latest dailyScores row's actual source) instead of the persisted `members.isLive` flag. Verified live: wrote a fake oura row for Lawrence → badge went LIVE with pulse animation → deleted the row (simulating a revoke) → badge fell back to DEMO DATA **instantly, with the page already open, no code path needed to "detect" the revocation** — it's just a natural consequence of the data no longer being there. This is the actual mechanism behind "if a user revokes access, their card returns to DEMO DATA."
+- [x] Badge legend added near the leaderboard header (explains what LIVE vs DEMO DATA means). "Manage my sharing →" link added to any live member's card (re-triggers `/api/auth/oura/login` to refresh their session, landing them back on the consent page able to change their toggles).
+- [x] Sidebar link row restructured: **Privacy is now permanent** (real users need it regardless of demo status); The Story / Presenter Script / Thesis / Privacy Slides remain POC-only (comment in `Sidebar.tsx` says so explicitly).
+- [ ] **Vercel env vars — status unclear, see the discovery above.** If Tracy's real data is from production, they may already be set. If Lawrence hasn't touched Vercel, this happened on localhost. Confirm before assuming either way.
 
 ## Live URLs
 - GitHub: https://github.com/git-ll-ext8/oura-poc-dashboard
 - Vercel (production): **https://oura-poc-dashboard.vercel.app/**
 
 ## Current blocker
-**Waiting on 3 Vercel env vars + a redeploy — Lawrence's click, not mine.** Exact values below. Once added and redeployed, Tracy can sign in for real.
+**Need Lawrence to confirm the Tracy discovery above before anything else.** If Vercel env vars are already set and this happened in production, the acceptance criterion may already be satisfied — just verify it looks right live and move to demo prep. If not, the env vars below still need adding.
 
 ## Vercel env vars needed NOW (Settings → Environment Variables → Production)
 | Name | Value | Secret? |
@@ -60,11 +64,11 @@
 After adding all 4, redeploy (Vercel should prompt, or trigger via the Deployments tab → redeploy latest).
 
 ## Next step
-1. Lawrence adds the 4 env vars above in Vercel, redeploys.
-2. Confirm the production site still loads correctly (sandbox data, no crash) post-redeploy.
-3. Tracy opens the production URL, clicks "Sign in with Oura" on her card, completes real Oura consent, completes our consent toggles.
-4. **Watch the acceptance criterion happen live**: her card should flip to real data + LIVE badge within ~30s, on an already-open tab, no refresh — this works automatically because InstantDB pushes the update to every open `db.useQuery` subscriber the moment the Admin SDK writes it.
-5. If anything's off at that point: check Vercel's function logs for the callback/consent routes (same `console.log`/`console.error` lines verified locally should appear there).
+1. **Lawrence confirms: did Tracy already sign in (production or localhost)?** Check Vercel env vars first — if `OURA_CLIENT_ID`/`OURA_CLIENT_SECRET`/`APP_BASE_URL`/`INSTANT_ADMIN_TOKEN` are already set in Vercel, that likely answers it.
+2a. **If not yet done for real**: add the 4 env vars below, redeploy, confirm the production site still loads (sandbox data, no crash), then have Tracy click "Sign in with Oura" on her card and complete the flow for the actual demo.
+2b. **If it already happened**: just open the production URL and confirm Tracy's card still shows LIVE with her readiness score and a "Manage my sharing" link — that's the acceptance criterion, already banked. Consider whether to re-run it live for the demo audience anyway (more compelling to watch it happen than to point at a static already-live card).
+3. Either way: watch for the badge going LIVE with the pulse animation on an already-open tab, no refresh — confirmed working mechanism (see badge-fallback verification above).
+4. If anything's off: check Vercel's function logs for the callback/consent routes (same `console.log`/`console.error` lines verified locally should appear there).
 
 ## Notes for the other agent (Codex fallback, `..\520.Codex`)
 - Stack ended up on Next.js 16.2.10 / React 19.2.4 (not 15 as originally planned in 03_TECH_STACK.md) — `create-next-app@latest` now resolves to 16. App Router conventions unchanged, no blocking issues found.
@@ -81,3 +85,7 @@ After adding all 4, redeploy (Vercel should prompt, or trigger via the Deploymen
 - Presentation pages (`/story`, `/script`, `/thesis`) are content/static-only per explicit instruction — no OAuth/leaderboard logic touched by them (the one exception, the badge layer in `LeaderboardView.tsx`, was done and pushed as its own commit BEFORE the 11:00 freeze, separately from the slide pages which could run to 11:15).
 - Gotcha hit this morning: an `Edit` call left a stray duplicate closing `}` in `globals.css` because the old_string I matched didn't include the original rule's trailing brace, so the file's leftover `}` landed right after my newly-inserted CSS block. Turbopack failed with `CssSyntaxError: Unexpected }` at the exact line. Fix: count `{`/`}` balance (`grep -c` or a quick Node one-liner) when a CSS edit produces a syntax error and the line number alone isn't obviously wrong.
 - `preview_inspect`'s reported `boundingBox` was unreliable for at least one element during this session (showed a `.slide` narrower than its parent when the real DOM was fine) — when a layout looks broken but the CSS looks right, cross-check with `element.getBoundingClientRect()` via `preview_eval` (extract plain numbers manually — `JSON.stringify(rect)` returns `{}` since DOMRect properties are prototype getters) before trusting the inspect tool's numbers.
+- **Same stale-dev-server gotcha bit again** (see the earlier note above) — CSS additions for the privacy package didn't apply until I found and killed the actual node process tree via `Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*510.Claude.Code*' }` and force-stopped it, then called `preview_start` fresh. This is now a recurring pattern in this environment — check for it FIRST whenever a change "isn't showing up" in local dev, before assuming a code bug.
+- **Before deleting ANYTHING that looks like stray test data, query it first.** I almost deleted what turned out to be Tracy's real completed OAuth data because a card showed an unexpected "LIVE" badge — checking `dailyScores`/`consents`/`ouraTokens` for that member first revealed it was genuine (7 days of real data, a real token, one real consent row), not test residue. Always distinguish "did I create this in this session" from "does this look unexpected" — only the former is safe to delete without asking.
+- Privacy package additions (`/privacy`, `/privacy-slides`, consent-page copy, badge-legend, manage-sharing link) reused existing CSS classes from the original (pre-slide-deck) `/story` article page (`.chart-card`, `.story-lede`, `.story-build-item`/`-number`/`-sublist`, `.story-why-list`/`-item`) plus the slide-deck classes (`.slide-compare`, `.slide-shield`, `.slide-list`) — no new article-layout CSS needed, just new small pieces (`.privacy-leave-options`, `.badge-legend`, `.manage-sharing-link`, `.consent-privacy-intro`, `.consent-revoke-link`).
+- `scripts/simulate-revoke-test.mjs` kept as a reusable verification tool (write/revoke a fake oura row for member L) — matches the `write-test-token.mjs` pattern, useful for re-confirming badge fallback behavior before the actual demo if needed.

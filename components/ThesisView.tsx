@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { SlideDeck } from "./SlideDeck";
 
 export function ThesisView() {
@@ -16,7 +17,11 @@ export function ThesisView() {
           <strong>Live pipeline</strong> — ring → Oura → dashboard, no manual steps.
         </div>
         <div className="slide-list-item">
-          <strong>Opt-in privacy</strong> — per-metric, default off, tested not assumed.
+          <strong>Opt-in privacy</strong> — per-metric, default off, tested not assumed. See{" "}
+          <Link href="/privacy-slides" style={{ color: "var(--cc-gold)" }}>
+            /privacy-slides
+          </Link>
+          .
         </div>
         <div className="slide-list-item">
           <strong>Built in 2 days, $0 infrastructure</strong> — the hard part is already done.

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { SlideDeck } from "./SlideDeck";
 
 export function ScriptView() {
@@ -13,6 +14,15 @@ export function ScriptView() {
 
     <>
       <div className="cue-step-label">STEP 2 · THE PROOF</div>
+      <div className="cue-beat">
+        <div className="cue-direction">
+          Before she signs in — show{" "}
+          <Link href="/privacy-slides" style={{ color: "var(--cc-gold)" }}>
+            /privacy-slides
+          </Link>{" "}
+          (4 slides, ~30 seconds). Answers her questions before she has to ask them.
+        </div>
+      </div>
       <div className="cue-beat">
         <div className="cue-direction">Hand Nadia the laptop. She clicks Sign in with Oura.</div>
         <div className="cue-say">

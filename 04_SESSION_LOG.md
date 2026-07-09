@@ -41,3 +41,12 @@ CentreCourt Ops wellness POC. Thesis: healthy employees are higher-functioning. 
 
 ## Next session goals
 Claude Code executes Phases 0→A→B tonight (Wed), Phase C stretch. Mockup still not provided — fallback design authorized.
+
+## Build session — 2026-07-08 (Wed evening), Claude Code
+**See STATUS.md at repo root for the live, up-to-date phase/blocker tracker — this section is a point-in-time recap.**
+
+- Phase 0: Node/npm/Git already present, nothing installed.
+- Phase A: Next.js 16 + TypeScript + Tailwind v4 + Recharts scaffolded, dashboard pixel-matches Danny's mockup (found at `HTML.Dashboard.Mockup\Oura.Dashboard.Mockup.(Danny).html`). Git repo created and pushed: https://github.com/git-ll-ext8/oura-poc-dashboard (gh CLI installed via winget, device-code browser auth completed by Lawrence).
+- Phase B: InstantDB app connected (id `96b57038-cc1d-4db6-9b66-7a86d802d443`), schema + perms pushed (`ouraTokens` client-locked FIRST, before any token exists), seed script pulls real Oura sandbox data, Leaderboard tab now reads live via `db.useQuery`.
+- **Blocker at end of session:** Vercel import not yet confirmed done. Lawrence has an account linked to GitHub; needs to import the repo and add `NEXT_PUBLIC_INSTANT_APP_ID` env var, then report the deploy URL.
+- Quarterly Growth / Weekly Trends / Achievements tabs are intentionally still on static hardcoded data — CLAUDE.md's definition of done only requires the Leaderboard tab to be InstantDB-backed. Revisit only if time remains after Phase C.

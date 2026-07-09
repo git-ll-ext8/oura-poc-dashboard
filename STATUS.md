@@ -4,7 +4,7 @@
 **Deadline:** Thu 2026-07-09 12:00 PM ET — live demo on boardroom screen
 
 ## Current phase
-**Phase B is code-complete.** All planned Phase B work (schema, perms, seed, live-query dashboard) is done and verified. Per CLAUDE.md phase discipline ("each phase must end deployed and working before the next starts"), holding here rather than starting Phase C — waiting on the Vercel deploy to bank Phase B before moving on.
+**Phase B is fully banked.** Deployed to Vercel, confirmed live by Lawrence in-browser. Holding here for the night — NOT starting Phase C (needs Oura credentials Lawrence hasn't provided yet, and CLAUDE.md's phase discipline says bank before advancing anyway).
 
 ## Banked milestones
 - [x] Phase 0 — Environment verified (Node v22.23.1, npm 11.6.4, Git 2.55.0 already present; nothing installed/modified)
@@ -19,25 +19,25 @@
 - [x] Weekly Trends tab rewired to `db.useQuery` too (sleep/activity/steps, last 7 days, real dates) — in scope since it's the same `dailyScores` data already fetched, not fabricated history
 - [x] Sidebar team list now ranked from the same live query instead of stale hardcoded order — was a real (if minor) inconsistency, now fixed
 - [x] Dead code removed from `lib/data.ts` (`ranked`, `weeklySeries`, `weeklyPointStandings`, unused `DAYS`/`SPREAD`) now that Leaderboard/Trends/Sidebar no longer read from it — `lib/data.ts` is now used only by Quarterly Growth and Achievements (deliberately still static, see notes below)
-- [ ] **Vercel import + first deploy — NOT YET CONFIRMED.** Lawrence has a Vercel account linked to GitHub, import in progress.
-- [ ] Phase C (stretch) — Real OAuth for Tracy
+- [x] **Vercel import + first deploy — LIVE.** https://oura-poc-dashboard.vercel.app/ — confirmed by Lawrence in-browser rendering live InstantDB data in production. **✅ BET-WINNING BASELINE BANKED (Phase A+B).**
+- [ ] Phase C (stretch) — Real OAuth for Tracy — not started, on hold
 
 ## Live URLs
 - GitHub: https://github.com/git-ll-ext8/oura-poc-dashboard
-- Vercel: **not yet deployed — this is the current blocker**
+- Vercel (production): **https://oura-poc-dashboard.vercel.app/**
 
 ## Current blocker
-**Genuinely blocked on a browser action only Lawrence can do:** completing the Vercel import and reporting back the deploy URL. This is one of the three explicit stop conditions (credential / browser click / 3-failed-attempts) — everything else in Phase B that could be done without that click has been done autonomously.
+None. Phase B is done and banked. Stopped for the night per Lawrence's explicit instruction — not starting Phase C tonight.
 
-Once imported, the project needs one env var set before/during first deploy:
-- `NEXT_PUBLIC_INSTANT_APP_ID` = `96b57038-cc1d-4db6-9b66-7a86d802d443` (not secret, safe to expose — required for the client SDK to connect)
+Note: my own automated re-check of the production URL was inconclusive (WebFetch doesn't execute JS, so it only sees the pre-hydration loading state; the local preview browser tool is scoped to the local dev server and snapped back rather than truly navigating externally). Relying on Lawrence's firsthand in-browser confirmation, which is authoritative.
 
-`INSTANT_ADMIN_TOKEN` and Oura credentials are NOT needed on Vercel yet (seed script runs locally only; Phase C will need them later for OAuth API routes).
-
-## Next step
-1. Lawrence imports `oura-poc-dashboard` repo in Vercel, adds `NEXT_PUBLIC_INSTANT_APP_ID` env var, deploys, reports the URL back.
-2. Claude verifies the live URL renders the leaderboard with real InstantDB data (not a loading spinner stuck / blank), updates this file with the deploy URL — this banks Phase B.
-3. Then: Phase C stretch (Oura OAuth for Tracy) — **this needs an Oura Client ID/Secret, a credential Lawrence hasn't provided yet, so it's also a stop condition**, not something to start speculatively. Quarterly Growth and Achievements stay static/hardcoded by design — they need fabricated multi-quarter history and streak tracking our schema/Oura sandbox don't provide, which is "historical analytics," explicitly out of scope per CLAUDE.md §5.
+## Next step (tomorrow / whenever work resumes)
+1. Get Oura Client ID/Secret (Lawrence creates dev account + registers app per 02_IMPLEMENTATION_PLAN.md §Phase C step 7) — this is the credential blocker holding back Phase C.
+2. Build OAuth authorization-code flow (`/api/auth/oura/login`, `/api/auth/oura/callback`), store tokens via Admin SDK into the already-locked `ouraTokens` entity.
+3. Per-metric consent toggles (default OFF).
+4. Re-run the token-lock verification (`scripts/write-test-token.mjs` / `delete-test-token.mjs`) — blocking gate before demo, now with a REAL token in place.
+5. Tracy signs in from her phone; her `dailyScores` rows switch `source` to `"oura"` and she gets a LIVE badge.
+6. If Phase C isn't solid by Thu 10:30 AM → cut it per the plan's own risk register. Phase A+B alone already wins the bet.
 
 ## Notes for the other agent (Codex fallback, `..\520.Codex`)
 - Stack ended up on Next.js 16.2.10 / React 19.2.4 (not 15 as originally planned in 03_TECH_STACK.md) — `create-next-app@latest` now resolves to 16. App Router conventions unchanged, no blocking issues found.

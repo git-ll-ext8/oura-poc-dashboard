@@ -1415,6 +1415,14 @@ body {
 .consent-privacy-intro a:hover {
   text-decoration: underline;
 }
+.consent-back-to-dashboard {
+  display: block;
+  margin-top: 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--cc-gold);
+  text-decoration: none;
+}
 .consent-revoke-link {
   display: block;
   margin-top: 14px;
@@ -1425,4 +1433,184 @@ body {
 .consent-revoke-link:hover {
   color: var(--cc-gold);
   text-decoration: underline;
+}
+
+/* ── /present DECK (mobile-first, button nav, no scroll-snap) ── */
+.present-deck {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--cc-blue-deep);
+}
+.present-counter {
+  text-align: center;
+  padding: 16px 0 8px;
+  font-size: 13px;
+  color: var(--text-dim);
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+.present-slide {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 16px 24px;
+}
+.present-controls {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--cc-blue-border);
+}
+.present-back-btn {
+  flex: 0 0 100px;
+  min-height: 56px;
+  border-radius: 8px;
+  border: 1px solid var(--cc-blue-border);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 15px;
+}
+.present-back-btn:disabled {
+  opacity: 0.3;
+}
+.present-next-btn {
+  flex: 1;
+  min-height: 56px;
+  border-radius: 8px;
+  border: none;
+  background: var(--cc-gold);
+  color: var(--cc-blue-deep);
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 17px;
+}
+.present-next-btn:disabled {
+  opacity: 0.4;
+}
+.present-cta-btn {
+  display: inline-block;
+  margin-top: 28px;
+  padding: 18px 32px;
+  border-radius: 10px;
+  background: var(--cc-gold);
+  color: var(--cc-blue-deep);
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 17px;
+  text-decoration: none;
+}
+
+/* ── MOBILE NAV (hidden on desktop; Sidebar covers nav there) ── */
+.mobile-nav {
+  display: none;
+}
+
+/* ── MOBILE BREAKPOINTS ── */
+@media (max-width: 900px) {
+  .sidebar {
+    display: none;
+  }
+  .main {
+    margin-left: 0;
+    max-width: 100vw;
+    padding: 20px 16px 76px;
+  }
+  .mobile-nav {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100;
+    background: var(--cc-blue-dark);
+    border-top: 1px solid var(--cc-blue-border);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .mobile-nav-link {
+    flex: 1;
+    text-align: center;
+    padding: 14px 0;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-family: var(--font-heading);
+  }
+  .mobile-nav-link.active {
+    color: var(--cc-gold);
+  }
+  .present-deck {
+    bottom: calc(52px + env(safe-area-inset-bottom));
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .header-actions {
+    width: 100%;
+  }
+  .leaderboard-grid {
+    grid-template-columns: 1fr;
+  }
+  .metrics-row {
+    grid-template-columns: 1fr;
+  }
+  .badge-legend {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .signin-oura-btn {
+    padding: 14px 12px;
+    font-size: 13px;
+    margin-top: 12px;
+  }
+  .consent-toggle-switch {
+    width: 52px;
+    height: 30px;
+  }
+  .consent-toggle-switch::after {
+    width: 24px;
+    height: 24px;
+  }
+  .consent-toggle-switch.on::after {
+    left: 26px;
+  }
+  .btn-primary {
+    width: 100%;
+    padding: 16px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .slide-title {
+    font-size: 28px;
+  }
+  .slide-stat-num {
+    font-size: 38px;
+  }
+  .slide-compare {
+    flex-direction: column;
+  }
+  .privacy-leave-options {
+    flex-direction: column;
+  }
+  .privacy-leave-option {
+    min-width: 0;
+  }
 }

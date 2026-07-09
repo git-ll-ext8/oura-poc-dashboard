@@ -66,17 +66,17 @@ function ConsentPageInner() {
         <div className="section-eyebrow">Your Choice</div>
         <div className="section-title">Per-Metric Sharing — Default Is Private</div>
         {METRICS.map((m) => (
-          <div className="consent-toggle-row" key={m.key}>
+          <div
+            className="consent-toggle-row"
+            key={m.key}
+            onClick={() => setToggles((t) => ({ ...t, [m.key]: !t[m.key] }))}
+            style={{ cursor: "pointer" }}
+          >
             <div>
               <div className="consent-toggle-label">{m.label}</div>
               <div className="consent-toggle-desc">{m.desc}</div>
             </div>
-            <div
-              className={`consent-toggle-switch${toggles[m.key] ? " on" : ""}`}
-              onClick={() => setToggles((t) => ({ ...t, [m.key]: !t[m.key] }))}
-              role="switch"
-              aria-checked={toggles[m.key]}
-            />
+            <div className={`consent-toggle-switch${toggles[m.key] ? " on" : ""}`} role="switch" aria-checked={toggles[m.key]} />
           </div>
         ))}
       </div>
@@ -84,6 +84,12 @@ function ConsentPageInner() {
       <button className="btn btn-primary" style={{ marginTop: 16 }} onClick={handleSave} disabled={saving}>
         {saved ? "Saved! Redirecting..." : saving ? "Saving..." : "Save & View Leaderboard"}
       </button>
+
+      {saved && (
+        <Link href="/" className="consent-back-to-dashboard">
+          ← Back to Dashboard
+        </Link>
+      )}
 
       <Link href="/privacy#how-to-stop" className="consent-revoke-link">
         How to revoke access completely →

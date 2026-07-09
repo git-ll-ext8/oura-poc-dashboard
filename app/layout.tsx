@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Montserrat, Open_Sans } from "next/font/google";
+import { MobileNav } from "@/components/MobileNav";
 import "./globals.css";
 
 const montserrat = Montserrat({
@@ -19,6 +20,11 @@ export const metadata: Metadata = {
   description: "CentreCourt team wellness leaderboard, powered by Oura Ring data.",
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -26,7 +32,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${montserrat.variable} ${openSans.variable}`}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <MobileNav />
+      </body>
     </html>
   );
 }

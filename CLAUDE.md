@@ -39,3 +39,9 @@ Live Vercel URL showing a dark-mode leaderboard of 5 team members with readiness
 
 ## End of every session
 Update `04_SESSION_LOG.md` with: what shipped, current deploy URL, exact next step.
+
+## Standing rules (added 2026-07-20 — apply to every session from now on)
+
+1. **Communication rule.** Lawrence is a beginner, not a developer, and short on time. Every explanation, plan, or update to him must be plain language, max ~10 lines, no code snippets or file paths unless he asks. Structure: what you're doing (1 line) → what he needs to do (numbered, if anything) → what happens next (1 line). Technical detail goes in `STATUS.md`, not in chat. When a decision is needed, offer at most 2-3 options with one-line trade-offs.
+2. **UI guidance rule.** Whenever Lawrence needs to click through any web UI (Vercel, GitHub, InstantDB, Oura), verify the current UI against live documentation first (fetch the docs — never rely on memory), then give exact click-by-click steps: where the button is, what the screen should look like, what to type. Assume he's never seen the screen before.
+3. **Supervision rule.** After every completed milestone, update `STATUS.md` in plain language and commit + push to GitHub immediately — it's Lawrence's external supervision channel.

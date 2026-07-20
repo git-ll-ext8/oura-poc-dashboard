@@ -17,12 +17,22 @@ export function getRedirectUri(): string {
   return `${base}/api/auth/oura/callback`;
 }
 
-type TokenResponse = {
+export type TokenResponse = {
   access_token: string;
   refresh_token: string;
   expires_in: number;
   token_type: string;
 };
+
+// Thrown when Oura rejects a refresh_token specifically (revoked/invalid) — distinct
+// from network errors or 5xx, which should be treated as transient and retried later,
+// not treated as "this person disconnected."
+export class OuraTokenRevokedError extends Error {
+  constructor(detail: string) {
+    super(`Oura refresh token rejected (likely revoked): ${detail}`);
+    this.name = "OuraTokenRevokedError";
+  }
+}
 
 export async function exchangeCodeForToken(code: string): Promise<TokenResponse> {
   const clientId = process.env.OURA_CLIENT_ID;
@@ -46,6 +56,41 @@ export async function exchangeCodeForToken(code: string): Promise<TokenResponse>
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`Oura token exchange failed: ${res.status} ${text}`);
+  }
+  return res.json();
+}
+
+// Standard OAuth2 refresh-token grant (RFC 6749 §6). Oura may rotate the refresh
+// token on each use, so callers MUST persist whatever refresh_token comes back,
+// not just the access_token.
+export async function refreshAccessToken(refreshToken: string): Promise<TokenResponse> {
+  const clientId = process.env.OURA_CLIENT_ID;
+  const clientSecret = process.env.OURA_CLIENT_SECRET;
+  if (!clientId || !clientSecret) throw new Error("OURA_CLIENT_ID/SECRET not set");
+
+  const body = new URLSearchParams({
+    grant_type: "refresh_token",
+    refresh_token: refreshToken,
+    client_id: clientId,
+    client_secret: clientSecret,
+  });
+
+  const res = await fetch("https://api.ouraring.com/oauth/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: body.toString(),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    // 400/401 with an OAuth error body is the standard signal for "this refresh
+    // token is no longer valid" (expired, revoked, or already superseded).
+    // 5xx or network failures should NOT be treated the same way — those are
+    // transient and the caller should just try again on the next scheduled run.
+    if (res.status === 400 || res.status === 401) {
+      throw new OuraTokenRevokedError(`${res.status} ${text}`);
+    }
+    throw new Error(`Oura token refresh failed: ${res.status} ${text}`);
   }
   return res.json();
 }

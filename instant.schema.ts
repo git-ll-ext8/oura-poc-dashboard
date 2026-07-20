@@ -10,6 +10,7 @@ const _schema = i.schema({
       isExternal: i.boolean(),
       avatar: i.string().optional(),
       isLive: i.boolean(),
+      lastSyncedAt: i.number().optional(),
     }),
     // RADIOACTIVE: real Oura OAuth tokens. Fully client-locked in instant.perms.ts —
     // only the server-side Admin SDK (INSTANT_ADMIN_TOKEN) may read/write this entity.

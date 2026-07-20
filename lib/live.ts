@@ -6,6 +6,7 @@ export type DbMember = {
   color: string;
   isExternal: boolean;
   isLive: boolean;
+  lastSyncedAt?: number;
 };
 
 export type DbDailyScore = {
@@ -86,6 +87,35 @@ export function buildLiveMembers(
 export function isMetricVisible(member: LiveMember, metric: MetricKey): boolean {
   if (member.source !== "oura") return true;
   return member.consentedMetrics.has(metric);
+}
+
+export function formatAbsoluteTime(ms: number): string {
+  const d = new Date(ms);
+  const datePart = d.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+  const timePart = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  return `${datePart} @ ${timePart}`;
+}
+
+export function formatRelativeTime(ms: number): string {
+  const diffSec = Math.floor((Date.now() - ms) / 1000);
+  if (diffSec < 60) return "just now";
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin} minute${diffMin === 1 ? "" : "s"} ago`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr} hour${diffHr === 1 ? "" : "s"} ago`;
+  const diffDay = Math.floor(diffHr / 24);
+  return `${diffDay} day${diffDay === 1 ? "" : "s"} ago`;
+}
+
+// Flag data as visibly stale if the daily refresh hasn't run in well over a day —
+// a healthy once-daily cron should never let this trip.
+export function isStaleSync(ms: number): boolean {
+  return Date.now() - ms > 36 * 60 * 60 * 1000;
 }
 
 export { weekdayLabel };

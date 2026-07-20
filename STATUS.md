@@ -1,7 +1,23 @@
 # STATUS — Oura Team Wellness Dashboard
 
-**Updated:** 2026-07-09 (Thu, late morning) by Claude Code
-**Format pivot:** demo is now PHONE-FIRST at 12:30 — everyone views on their own iPhone via a single texted link (`/present`). Content freeze was 12:10 for this pass.
+**Updated:** 2026-07-20 by Claude Code
+
+## In plain language (read this first)
+
+Nadia's and Tracy's cards had been frozen since demo day (July 9). Cause: the app only ever pulled fresh Oura data at the exact moment someone signed in — there was no way for it to update after that, and it never tried.
+
+**What I built and tested today:**
+- A daily automatic refresh, once a day at 11am Eastern, for everyone connected.
+- If someone disconnects their Oura account, their card now automatically reverts to "DEMO DATA" — matches what the Privacy page already promised.
+- Every real-data card now shows exactly when it was last updated (e.g. "Last updated: Mon July 20 @ 12:44 PM (3 hours ago)"), and turns red if it ever goes stale.
+- Old daily scores are now kept forever as history instead of being erased each refresh — this is what makes the Weekly Trends page actually meaningful over time.
+- Tested for real, safely: triggered the refresh by hand once, confirmed Nadia's and Tracy's cards pulled today's real data while their old July data stayed intact. Also confirmed the "renew an expiring connection" logic works against Oura's real servers, using only Lawrence's own account for that specific test.
+
+**One click needed from you in Vercel:** add a security key so only Vercel (not randoms on the internet) can trigger the refresh. Exact steps given in chat.
+
+**Heads up, honestly:** the Leaderboard page's "Today / This Week / This Month" tabs are just labels right now — clicking them doesn't change what's shown. The separate "Weekly Trends" page is the one that actually reads real history. If you want "This Week/This Month" to work for real, that's a follow-up, not today's fix.
+
+## Older history below (previous sessions)
 
 ## Current phase
 **Phase C + presentation/privacy packages complete. Mobile pass complete on top of all of it.** New `/present` page is the single link to text everyone — a 10-slide, button-navigated (Next/Back + counter), mobile-first deck merging the story/privacy/thesis content, ending on a big "Open the Live Dashboard →" CTA to `/`. The dashboard itself (`/`), OAuth sign-in flow, and consent page are now genuinely usable on a 390px iPhone screen — verified via device-emulated preview at that exact width, not just assumed.
@@ -46,38 +62,52 @@
 - [x] **Mobile pass on OAuth/consent pages.** Toggle switches enlarged (44×24 → 52×30) for reliable tapping, the entire toggle row is now clickable (not just the small switch), Save button goes full-width on mobile. A "← Back to Dashboard" link now appears once saved (in addition to the existing 900ms auto-redirect). No OAuth/save logic touched — purely layout + one event-handler relocation (same function, moved from the switch element to its parent row).
 - [x] **Persistent mobile nav** (`components/MobileNav.tsx`): fixed bottom bar, "Slides · Dashboard · Privacy," rendered from the root layout so it appears on every page automatically. Hidden on desktop (≥900px) where the existing Sidebar already covers navigation; Sidebar itself now hides on mobile to avoid a redundant/cramped second nav.
 - [x] Verified no desktop regression after all mobile CSS changes: sidebar still visible at 1440px, mobile nav correctly hidden, all 5 members still render with Tracy correctly ranked #1 and LIVE.
-- [ ] **Vercel env vars — status unclear, see the discovery above.** If Tracy's real data is from production, they may already be set. If Lawrence hasn't touched Vercel, this happened on localhost. Confirm before assuming either way.
+- [x] **Solved (2026-07-20): the frozen-dashboard bug.** Confirmed via code + database inspection that no refresh mechanism ever existed — Oura data was pulled exactly once, at sign-in, forever. Built a daily automatic refresh (see below); the Tracy-discovery mystery from July 9 is resolved as a side effect (it really was a genuine production sign-in, it just never updated again after).
+- [x] **Fixed a real data-loss bug in the sync logic** while building the above: the original code deleted ALL of a member's stored real-data history and rewrote only the last 7 days, every single sync. Switched to per-day upsert — history now accumulates permanently. Verified: Nadia and Tracy each have 14 stored days after today's test run (7 original + 7 new), zero lost, zero duplicated.
+- [x] **Oura refresh-token support built and verified against the real API** — previously the stored `refreshToken` was saved but never used by any code. `getValidAccessToken()` now renews an expiring access token automatically. Verified with a real request to Oura's servers using Lawrence's own token only (not Tracy's/Nadia's) — succeeded, renewed for another 30 days.
+- [x] **Daily cron job built and tested end-to-end** (`/api/cron/refresh-oura`, secured by `CRON_SECRET`, scheduled via `vercel.json` for 11am ET daily — the maximum frequency the current Vercel Hobby plan allows, confirmed against live docs). Ran it for real locally against production data: refreshed Nadia and Tracy successfully, correctly no-opped for Lawrence (no ring).
+- [x] **Revoke → DEMO DATA now actually implemented**, not just promised on the Privacy page. If Oura rejects a renewal (person disconnected), the cron job deletes their stored token + real data, and the leaderboard's existing self-healing badge logic does the rest automatically.
+- [x] **"Last updated" freshness display added** to every real-data card — human-readable timestamp + a self-updating "(N ago)" counter, turns red if ever stale past 36 hours.
+- [ ] **One Vercel click still needed:** add the `CRON_SECRET` environment variable, then redeploy. Exact value and steps given in chat.
 
 ## Live URLs
 - GitHub: https://github.com/git-ll-ext8/oura-poc-dashboard
 - Vercel (production): **https://oura-poc-dashboard.vercel.app/**
 
-## Current blocker
-**Need Lawrence to confirm the Tracy discovery above before anything else.** If Vercel env vars are already set and this happened in production, the acceptance criterion may already be satisfied — just verify it looks right live and move to demo prep. If not, the env vars below still need adding.
+## RESOLVED (2026-07-20): the Tracy-discovery mystery from demo day
+Confirmed by evidence, not just inference: the Vercel env vars were clearly set at some point (Tracy's and Nadia's real sign-ins are genuinely in the database, dated July 3-9), so the demo's acceptance criterion was in fact satisfied back on July 9. What happened after that: nothing pulled fresh data again until today, because no refresh mechanism existed. That's the whole story — no mystery left, just a missing feature, now built.
 
-## Vercel env vars needed NOW (Settings → Environment Variables → Production)
-| Name | Value | Secret? |
+## Current blocker (2026-07-20)
+**One Vercel env var to add: `CRON_SECRET`.** Everything else needed is already set (confirmed working — the daily refresh already ran successfully against production-equivalent local testing using real tokens). Click-by-click steps given directly in chat, not repeated here.
+
+## What the daily refresh needs in Vercel
+| Name | Value | Notes |
 |---|---|---|
-| `OURA_CLIENT_ID` | `eaa6a0ea-7cfa-4f4b-b5cd-b8038930306b` | No, but no need to expose either — server-only var |
-| `OURA_CLIENT_SECRET` | `wzuuH2JyGnXYcLKgK4n4z3RaS0G73Qlu6-9j0vxlOCI` | **Yes — mark sensitive/encrypted in Vercel** |
-| `APP_BASE_URL` | `https://oura-poc-dashboard.vercel.app` | No — must exactly match the registered redirect URI's origin |
+| `CRON_SECRET` | (a random string — see chat for the exact value to paste) | Vercel automatically sends this as an `Authorization` header when it triggers the cron job; the cron route checks it matches before doing anything. |
 
-`NEXT_PUBLIC_INSTANT_APP_ID` should already be set from Phase B — no change needed there. `INSTANT_ADMIN_TOKEN` was NOT previously needed on Vercel but **IS now required** (the callback/consent routes run server-side on Vercel and need it) — add it too:
-
-| Name | Value | Secret? |
-|---|---|---|
-| `INSTANT_ADMIN_TOKEN` | `249ed72c-330d-4e4d-a85b-8ba455156f5c` | **Yes — mark sensitive/encrypted** |
-
-After adding all 4, redeploy (Vercel should prompt, or trigger via the Deployments tab → redeploy latest).
+All other env vars (`OURA_CLIENT_ID`, `OURA_CLIENT_SECRET`, `APP_BASE_URL`, `INSTANT_ADMIN_TOKEN`, `NEXT_PUBLIC_INSTANT_APP_ID`) are already set in Vercel from before — confirmed by the fact that real sign-ins exist in production.
 
 ## Next step
-1. **Lawrence confirms: did Tracy already sign in (production or localhost)?** Check Vercel env vars first — if `OURA_CLIENT_ID`/`OURA_CLIENT_SECRET`/`APP_BASE_URL`/`INSTANT_ADMIN_TOKEN` are already set in Vercel, that likely answers it.
-2a. **If not yet done for real**: add the 4 env vars below, redeploy, confirm the production site still loads (sandbox data, no crash), then have Tracy click "Sign in with Oura" on her card and complete the flow for the actual demo.
-2b. **If it already happened**: just open the production URL and confirm Tracy's card still shows LIVE with her readiness score and a "Manage my sharing" link — that's the acceptance criterion, already banked. Consider whether to re-run it live for the demo audience anyway (more compelling to watch it happen than to point at a static already-live card).
-3. Either way: watch for the badge going LIVE with the pulse animation on an already-open tab, no refresh — confirmed working mechanism (see badge-fallback verification above).
-4. If anything's off: check Vercel's function logs for the callback/consent routes (same `console.log`/`console.error` lines verified locally should appear there).
+1. Add `CRON_SECRET` in Vercel, redeploy (any push or a manual redeploy both work — Vercel picks up `vercel.json`'s cron schedule automatically on deploy).
+2. Confirm the cron job appears in Vercel's project settings under Cron Jobs.
+3. Nothing else to do — it'll run on its own every day at 11am ET from then on. First real automatic run will show up as a fresh "Last updated" time on Nadia's and Tracy's cards the next morning.
 
 ## Notes for the other agent (Codex fallback, `..\520.Codex`)
+
+### 2026-07-20 session: daily refresh + refresh-token support
+- **Root cause of the "frozen since July 9" symptom**: the app only ever called Oura's API once, inside `/api/auth/oura/callback` (the sign-in route). No cron, no polling, nothing else. The stored `refreshToken` field existed in the schema but was never read by any code — 100% dead until today.
+- **The historical-data bug this session fixed**: the original sync logic deleted ALL of a member's `oura`-sourced `dailyScores` rows and rewrote only the freshly-fetched 7-day window, every single time it ran. That means if it had run daily as originally written, anything older than 7 days would have been silently destroyed on every run — the opposite of the "permanent history" requirement. Fixed by switching to a per-day upsert (`lib/oura-sync.ts` → `syncMemberScores`): look up whether a row for that exact `(memberId, day, source="oura")` already exists; update it in place if so, insert if not; never touch days outside the current fetch window. Verified for real: after today's manual run, Nadia and Tracy both show 14 stored days (the original 7 from demo day, PLUS 7 new ones from today) — nothing lost, nothing duplicated.
+- **New file `lib/oura-sync.ts`**: `getValidAccessToken(memberShortId)` (returns the stored access token as-is if it has more than 2 days left before expiry, otherwise calls Oura's refresh grant and persists whatever new access/refresh token pair comes back — Oura's rotation behavior for refresh tokens couldn't be confirmed from docs beforehand, so the code always overwrites both fields with the response rather than assuming the old refresh token stays valid); `syncMemberScores(...)` (the extracted/fixed pull-and-store logic, now shared by both the sign-in callback and the cron route so they can never drift out of sync with each other); `disconnectMember(...)` (deletes the stored token + all oura-sourced dailyScores + clears `isLive` — this is what makes the `/privacy` page's "revoke in Oura → card returns to DEMO DATA" promise actually true, since it's the LeaderboardView's badge logic already being self-healing off `member.source`).
+- **New `lib/oura.ts` additions**: `refreshAccessToken(refreshToken)` (standard OAuth2 refresh grant, mirrors the existing `exchangeCodeForToken`) and `OuraTokenRevokedError` (thrown specifically on a 400/401 response to the refresh call — the cron route uses `instanceof` to decide "this person disconnected" vs. "transient failure, just log and try again tomorrow"; 5xx/network errors are NOT treated as revocation).
+- **Verified the real refresh grant against Oura's live API**: temporarily backdated Lawrence's own stored token's `expiresAt`, then made the actual refresh request his real `refreshToken` — succeeded, returned a new `expires_in` of exactly 2,592,000 seconds (30 days), confirming Oura's access-token lifetime and that the refresh flow works exactly as standard OAuth2. Did NOT test this against Tracy's or Nadia's real tokens (unnecessary risk to their live connections for a test that Lawrence's own account already proved).
+- **New route `app/api/cron/refresh-oura/route.ts`**: checks `Authorization: Bearer <CRON_SECRET>` (Vercel's documented convention — it auto-sends this header when `CRON_SECRET` env var is set, confirmed via current Vercel docs, not memory), then loops every row in `ouraTokens` (i.e., every member who's ever signed in, regardless of current `isLive` state) calling `getValidAccessToken` → `syncMemberScores`, or `disconnectMember` on a caught `OuraTokenRevokedError`. Returns a JSON summary per member. Tested locally end-to-end with real production tokens (not a mock): `{"L":"ok (no data)","N":"ok (7 days)","T":"ok (7 days)"}`.
+- **New `vercel.json`**: `{"crons":[{"path":"/api/cron/refresh-oura","schedule":"0 15 * * *"}]}` — 15:00 UTC = 11:00 AM EDT (current US Eastern Daylight offset, since it's July). **Known limitation, not fixed today**: Vercel Cron schedules are fixed UTC and don't auto-adjust for US Daylight Saving. When clocks fall back in November, this same `0 15 * * *` will start firing at 10:00 AM EST instead of 11:00 AM, until manually changed to `0 16 * * *`. Worth a calendar reminder, not worth automating for a 5-person POC.
+- **Bumping refresh frequency later (if the Vercel plan is upgraded off Hobby)**: confirmed via current Vercel docs that Hobby-plan cron jobs are limited to once per day; paid plans allow more frequent schedules. The one line to change is the `"schedule"` value in `vercel.json` — e.g. `"0 */6 * * *"` for every 6 hours. Nothing else in the code needs to change; `syncMemberScores`'s upsert logic is already safe to call as often as you like.
+- **New `members.lastSyncedAt` field** (schema pushed, client-readable — `members` entity's perms were already `view: "true"`, no perms.ts change needed): epoch-ms timestamp, stamped by `syncMemberScores` every time it successfully writes real data for that member (both from sign-in and from the daily cron). `components/FreshnessLabel.tsx` renders it as an absolute time + a self-updating "(N ago)" (re-renders every 60s via a plain interval, no extra data fetching — InstantDB's live query already delivers the new timestamp instantly to any open tab when the cron writes it). Turns red/bold past 36 hours stale (`lib/live.ts` → `isStaleSync`), which should never trigger under normal operation with a healthy daily cron.
+- **Explicitly NOT built today** (flagged honestly to Lawrence, not silently skipped): the Leaderboard page's own "Today / This Week / This Month" sub-tabs remain cosmetic-only (no data filtering wired to them) — this was already true before today and wasn't in scope for this fix. Only the separate "Weekly Trends" nav page reads real accumulating history, and it already did (confirmed by reading `TrendsView.tsx`/`lib/live.ts` before making changes) — it needed zero changes, since `buildLiveMembers` was always generic over whatever `dailyScores` rows exist per member; it was only the write-side deletion bug that would have broken it once daily syncing started.
+- **CLAUDE.md gained three standing rules today** (plain-language chat with Lawrence, verify-then-give-click-steps for any UI work, STATUS.md+commit+push after every milestone) — read those before continuing this project in any future session, they change how you should communicate, not just what you build.
+
+## Notes for the other agent (Codex fallback, `..\520.Codex`) — sessions before 2026-07-20
 - Stack ended up on Next.js 16.2.10 / React 19.2.4 (not 15 as originally planned in 03_TECH_STACK.md) — `create-next-app@latest` now resolves to 16. App Router conventions unchanged, no blocking issues found.
 - Oura sandbox endpoints (`https://api.ouraring.com/v2/sandbox/usercollection/...`) DO require an `Authorization` header but accept any string as bearer token (confirmed live, contradicts a literal reading of "no account needed" in the docs — you still need *a* header, just not a real credential).
 - Sandbox fixture data is a fixed canned dataset (same values regardless of caller) — the seed script (`scripts/seed.mjs`) applies a small deterministic per-member offset so the leaderboard doesn't show 5 identical members. This is a real cosmetic/scope decision, not a bug.

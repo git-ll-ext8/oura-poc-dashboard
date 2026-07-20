@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { FreshnessLabel } from "./FreshnessLabel";
 import { RingArc } from "./RingArc";
 import { db } from "@/lib/instant";
 import { buildLiveMembers, isMetricVisible, weekdayLabel, type LiveMember, type MetricKey } from "@/lib/live";
@@ -258,6 +259,7 @@ function MemberCard({ member, rank }: { member: LiveMember; rank: number }) {
           Sign in with Oura
         </a>
       )}
+      {isLiveNow && member.lastSyncedAt && <FreshnessLabel lastSyncedAt={member.lastSyncedAt} />}
       {isLiveNow && (
         <a className="manage-sharing-link" href={`/api/auth/oura/login?member=${member.shortId}`}>
           Manage my sharing →

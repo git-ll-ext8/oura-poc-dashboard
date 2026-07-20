@@ -1397,6 +1397,17 @@ body {
   color: var(--cc-gold);
   text-decoration: underline;
 }
+.freshness-label {
+  margin-top: 10px;
+  font-size: 10px;
+  color: var(--text-dim);
+  text-align: center;
+  line-height: 1.4;
+}
+.freshness-label.stale {
+  color: var(--coral);
+  font-weight: 700;
+}
 
 .consent-privacy-intro {
   font-size: 13px;

@@ -2,7 +2,16 @@
 
 **Updated:** 2026-07-21 (later same day) by Claude Code
 
-## Latest: dashboard now matches what Tracy/Nadia would see on their own phone
+## Latest: "still syncing" now shows on the main leaderboard, not just the history page
+
+You pointed out that seeing "calculating" only on the click-through history page wasn't enough — a hover tooltip on the main leaderboard is invisible on a boardroom screen or a phone, so nobody would ever actually see the explanation. Agreed, and pushed the thinking further: the real Oura app can stay quiet about this because it's personal (you already know you haven't opened it today), but a shared team leaderboard has no such shared context, so it should just say so.
+
+- Activity now shows the word **"Syncing"** directly on the card (no hover needed) instead of an ellipsis.
+- Added a one-line note under the "Last updated" text: *"Today's activity is still syncing from [name]'s ring."*
+- Deliberately kept it simple there — no mention of Oura's 4am-window internals on the main view, that stays on the history page for anyone who clicks in for more detail.
+- Tested in a real browser again, including checking the text doesn't overflow the card at its actual width.
+
+## Older: dashboard now matches what Tracy/Nadia would see on their own phone
 
 **In plain language:** you asked me to make the dashboard match the real Oura app, since that's what people will compare it to. I checked Oura's official developer docs to see exactly how their own app behaves, and changed our approach:
 

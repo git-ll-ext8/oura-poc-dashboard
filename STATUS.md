@@ -1,8 +1,16 @@
 # STATUS — Oura Team Wellness Dashboard
 
-**Updated:** 2026-07-21 by Claude Code
+**Updated:** 2026-07-21 (later same day) by Claude Code
 
-## Latest: click any person to see their full history
+## Latest: "dashboard didn't update at 11am" — explained, not a bug
+
+You checked at 11:38am ET and the daily refresh hadn't run yet. Root cause, confirmed against Vercel's current docs: the free "Hobby" plan doesn't fire cron jobs at an exact minute — it deliberately runs them anytime within the scheduled hour (so ours can legitimately fire as late as 11:59am ET), to spread load across all its free-tier users. 11:38 was still inside that normal window, not a failure.
+
+- Manually triggered the refresh to confirm the route itself works: it does — Tracy's and Nadia's data refreshed successfully on request, confirmed via the live database (`lastSyncedAt` updated to just now). So the code/token/database side has no bug; this is purely a Vercel Hobby-plan scheduling characteristic.
+- Dashboard is showing fresh data right now regardless (manually refreshed as part of this check).
+- Two options if the "up to ~1hr stale each morning" window is undesirable: leave it (free), or upgrade to Vercel Pro (~$20/mo) for exact-minute daily execution. No action taken either way — Lawrence's call.
+
+## Older: click any person to see their full history
 
 **In plain language:** you can now click anyone — either their tile on the leaderboard, or their name in the left sidebar's Team list — and it opens a new page showing that person's complete history as a table, one row per day (Readiness, Sleep, Activity, Steps, and whether that day is Real or Demo data). Same privacy rule as before: if someone hasn't agreed to share a metric, that cell just shows "Private" instead of the number.
 

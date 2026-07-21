@@ -34,6 +34,18 @@ export class OuraTokenRevokedError extends Error {
   }
 }
 
+// Thrown when Oura issued a new token but we could not durably save + verify it
+// after retries. This is DIFFERENT from a revoked token — Oura's servers may have
+// already invalidated the old refresh token as a side effect of issuing the new
+// one, so the safe response is to alert loudly and touch nothing further, never
+// to treat this the same as a real revocation.
+export class TokenSaveFailedError extends Error {
+  constructor(memberShortId: string) {
+    super(`Refreshed token for member=${memberShortId} could not be durably saved/verified after retries`);
+    this.name = "TokenSaveFailedError";
+  }
+}
+
 export async function exchangeCodeForToken(code: string): Promise<TokenResponse> {
   const clientId = process.env.OURA_CLIENT_ID;
   const clientSecret = process.env.OURA_CLIENT_SECRET;

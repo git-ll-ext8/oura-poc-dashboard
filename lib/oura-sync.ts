@@ -2,16 +2,77 @@
 // so both paths pull/store data identically and can never drift apart.
 import { id } from "@instantdb/admin";
 import { adminDb } from "./instant-admin";
-import { fetchOuraRaw, last7DayRange, refreshAccessToken } from "./oura";
+import { TokenSaveFailedError, fetchOuraRaw, last7DayRange, refreshAccessToken, type TokenResponse } from "./oura";
 
 // Once-daily cron granularity means we should refresh well before actual expiry,
 // not at the last minute — a multi-day buffer ensures we never hit an already-expired
 // token in the ~24h gap between two scheduled runs.
 const REFRESH_BUFFER_MS = 2 * 24 * 60 * 60 * 1000;
 
+const SAVE_RETRY_ATTEMPTS = 4;
+const SAVE_RETRY_DELAY_MS = 500;
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// SAFETY-CRITICAL: once Oura issues a new token, the old refresh token may already
+// be dead on Oura's side (rotation is common and undocumented for this API). So we
+// never "rely on" the new token until it is confirmed durably saved — save first,
+// read it back to verify the write actually landed, retry on any failure, and only
+// then return it. If saving still fails after retries, we do NOT throw the fresh
+// tokens away — we log them (the only path to manual recovery) and raise a distinct
+// error that must NEVER be treated as "this person revoked access."
+async function saveAndVerifyToken(
+  tokenRowId: string,
+  memberShortId: string,
+  fresh: TokenResponse,
+  attempt = 1
+): Promise<void> {
+  try {
+    await adminDb.transact([
+      adminDb.tx.ouraTokens[tokenRowId].update({
+        accessToken: fresh.access_token,
+        refreshToken: fresh.refresh_token,
+        expiresAt: Date.now() + fresh.expires_in * 1000,
+      }),
+    ]);
+
+    const { ouraTokens } = await adminDb.query({ ouraTokens: { $: { where: { memberId: memberShortId } } } });
+    const saved = ouraTokens.find((t) => t.id === tokenRowId);
+    if (saved?.accessToken === fresh.access_token && saved?.refreshToken === fresh.refresh_token) {
+      console.log(`[oura-sync] member=${memberShortId} refreshed token saved and verified (attempt ${attempt})`);
+      return;
+    }
+    throw new Error("read-back after save did not match what was written");
+  } catch (err) {
+    if (attempt < SAVE_RETRY_ATTEMPTS) {
+      console.log(
+        `[oura-sync] member=${memberShortId} save/verify attempt ${attempt} failed (${String(err)}), retrying...`
+      );
+      await sleep(SAVE_RETRY_DELAY_MS * attempt);
+      return saveAndVerifyToken(tokenRowId, memberShortId, fresh, attempt + 1);
+    }
+    console.error(
+      `[oura-sync] CRITICAL: member=${memberShortId} — Oura issued a new token but it could NOT be saved/verified after ${SAVE_RETRY_ATTEMPTS} attempts. Manual recovery may be required.`
+    );
+    // Logging the actual secret here is deliberate and ONLY happens in this
+    // exhausted-retries branch — the alternative is losing the only copy of a
+    // token Oura will not reissue, which is worse than a slim exposure window
+    // in a private, access-controlled log viewer.
+    console.error(
+      `[oura-sync] RECOVERY DATA member=${memberShortId} access_token=${fresh.access_token} refresh_token=${fresh.refresh_token} expires_in=${fresh.expires_in}`
+    );
+    throw new TokenSaveFailedError(memberShortId);
+  }
+}
+
 // Returns a usable access token for this member, refreshing it first if it's expired
 // or expiring soon. Throws OuraTokenRevokedError (from lib/oura.ts) if Oura rejects
-// the stored refresh token — the caller decides what that means (see disconnectMember).
+// the stored refresh token, or TokenSaveFailedError if a refresh succeeded but could
+// not be durably saved — callers must treat these two very differently (see the
+// cron route: only the former is even a CANDIDATE signal for "this person left,"
+// and per explicit safety policy neither auto-disconnects anymore — both just alert).
 export async function getValidAccessToken(memberShortId: string): Promise<string> {
   const { ouraTokens } = await adminDb.query({ ouraTokens: { $: { where: { memberId: memberShortId } } } });
   const tokenRow = ouraTokens[0];
@@ -22,23 +83,22 @@ export async function getValidAccessToken(memberShortId: string): Promise<string
   }
 
   console.log(`[oura-sync] token for member=${memberShortId} expiring soon (or expired) — refreshing`);
-  const fresh = await refreshAccessToken(tokenRow.refreshToken);
-  await adminDb.transact([
-    adminDb.tx.ouraTokens[tokenRow.id].update({
-      accessToken: fresh.access_token,
-      refreshToken: fresh.refresh_token, // Oura may rotate this — always persist what comes back
-      expiresAt: Date.now() + fresh.expires_in * 1000,
-    }),
-  ]);
+  const fresh = await refreshAccessToken(tokenRow.refreshToken); // old token in DB is untouched up to this point
+  await saveAndVerifyToken(tokenRow.id, memberShortId, fresh); // only returns once the new token is confirmed durable
   console.log(`[oura-sync] refreshed token for member=${memberShortId}, new expiry in ${fresh.expires_in}s`);
   return fresh.access_token;
 }
 
-// Called when Oura has rejected the refresh token (revoked access). Deletes the
-// stored token and all oura-sourced dailyScores for this member, and clears isLive.
-// This is what makes good on the /privacy promise: "revoke in Oura -> card returns
-// to DEMO DATA" — the leaderboard badge is already self-healing off member.source,
-// so once the oura rows are gone the card falls back to DEMO DATA automatically.
+// Deletes the stored token and all oura-sourced dailyScores for this member, and
+// clears isLive — makes good on the /privacy promise ("revoke in Oura -> card
+// returns to DEMO DATA") via the leaderboard's existing self-healing badge logic.
+//
+// NOT auto-invoked by the cron job as of 2026-07-20, per explicit safety policy:
+// a failed refresh COULD mean genuine revocation, but could also mean a transient
+// save/verify failure — and telling those apart with full certainty isn't possible.
+// Given Tracy's/Nadia's tokens must be treated as irreplaceable while unattended,
+// the cron only alerts on either failure now; this function stays available for
+// a human (Lawrence) to call deliberately once a suspected revocation is confirmed.
 export async function disconnectMember(memberShortId: string): Promise<void> {
   console.log(`[oura-sync] member=${memberShortId} token revoked — disconnecting and clearing real data`);
   const { ouraTokens, dailyScores, members } = await adminDb.query({

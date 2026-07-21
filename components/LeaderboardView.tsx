@@ -248,9 +248,10 @@ function MemberCard({ member, rank }: { member: LiveMember; rank: number }) {
           ) : member.activityPending ? (
             <div
               className="val metric-pending"
+              style={{ fontSize: 14 }}
               title="Oura's Activity Day runs 4am-4am and doesn't finalize until tomorrow morning -- same as it would show as still-calculating in the Oura app right now."
             >
-              ⋯
+              Syncing
             </div>
           ) : (
             <div className="val" style={{ color: "#E06060" }}>
@@ -284,6 +285,11 @@ function MemberCard({ member, rank }: { member: LiveMember; rank: number }) {
         </a>
       )}
       {isLiveNow && member.lastSyncedAt && <FreshnessLabel lastSyncedAt={member.lastSyncedAt} />}
+      {isLiveNow && member.activityPending && (
+        <div className="sync-pending-note">
+          Today&apos;s activity is still syncing from {member.name}&apos;s ring
+        </div>
+      )}
       {isLiveNow && (
         <a
           className="manage-sharing-link"

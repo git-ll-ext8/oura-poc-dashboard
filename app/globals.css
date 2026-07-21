@@ -1073,6 +1073,15 @@ body {
   cursor: help;
 }
 
+.sync-pending-note {
+  margin-top: 10px;
+  font-size: 12px;
+  font-style: italic;
+  color: var(--text-dim);
+  text-align: center;
+  line-height: 1.4;
+}
+
 /* ── SLIDE DECK (shared by /story, /script, /thesis) ── */
 .slide-deck {
   position: fixed;

@@ -69,12 +69,22 @@ export function buildLiveMembers(
       const scores = (byMember.get(member.shortId) ?? []).slice().sort((a, b) => a.day.localeCompare(b.day));
       const last7 = scores.slice(-7);
       const latest = scores[scores.length - 1];
+
+      // Oura's "Activity Day" runs 4am-4am local time (closes the NEXT morning), while
+      // Readiness/Sleep are stamped by plain UTC calendar date and land same-morning.
+      // So the single most-recent day row can have real readiness/sleep but a
+      // structurally-can't-exist-yet activity score (defaulted to 0 at write time in
+      // lib/oura-sync.ts) — that's not "no activity," it's "today's activity window
+      // hasn't closed." Fall back to the latest day that actually has one, so the
+      // card shows yesterday's real number instead of a misleading 0.
+      const latestWithActivity = [...scores].reverse().find((s) => s.activity > 0) ?? latest;
+
       return {
         ...member,
         readiness: latest?.readiness ?? 0,
         sleep: latest?.sleep ?? 0,
-        activity: latest?.activity ?? 0,
-        steps: latest?.steps ?? 0,
+        activity: latestWithActivity?.activity ?? 0,
+        steps: latestWithActivity?.steps ?? 0,
         weekly: last7,
         source: latest?.source ?? "sandbox",
         consentedMetrics: consentsByMember.get(member.shortId) ?? new Set<MetricKey>(),

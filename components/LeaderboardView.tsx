@@ -6,7 +6,15 @@ import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YA
 import { FreshnessLabel } from "./FreshnessLabel";
 import { RingArc } from "./RingArc";
 import { db } from "@/lib/instant";
-import { buildLiveMembers, isMetricVisible, sortLiveFirst, weekdayLabel, type LiveMember, type MetricKey } from "@/lib/live";
+import {
+  buildLiveMembers,
+  isMetricVisible,
+  shortDayLabel,
+  sortLiveFirst,
+  weekdayLabel,
+  type LiveMember,
+  type MetricKey,
+} from "@/lib/live";
 
 const SUB_TABS = ["Today", "This Week", "This Month"];
 
@@ -110,10 +118,11 @@ export function LeaderboardView() {
       <div className="metrics-row">
         {CATEGORIES.map((cat) => {
           const metric = METRIC_FOR_CATEGORY[cat.key];
-          // "Best Activity" needs a real finalized score to rank fairly -- a member
-          // whose score is still calculating isn't "0 activity," they're unranked
-          // yet. Steps stays live for everyone since it's always a real number.
-          const visible = members.filter((m) => isMetricVisible(m, metric) && !(cat.key === "activity" && m.activityPending));
+          // Activity/Steps for "Best Activity"/"Most Steps" only mean something once
+          // a member has at least one real day on record -- a brand-new sign-in with
+          // no closed Activity Day yet isn't "0 activity," they're just not ranked yet.
+          const needsActivityDay = cat.key === "activity" || cat.key === "steps";
+          const visible = members.filter((m) => isMetricVisible(m, metric) && !(needsActivityDay && m.source === "oura" && m.activityDay === null));
           const sorted = [...visible].sort((a, b) => b[cat.key] - a[cat.key]);
           return (
             <div className="metric-card" key={cat.id}>
@@ -245,14 +254,8 @@ function MemberCard({ member, rank }: { member: LiveMember; rank: number }) {
         <div className="mini-metric">
           {!showActivity ? (
             <div className="val private-metric">—</div>
-          ) : member.activityPending ? (
-            <div
-              className="val metric-pending"
-              style={{ fontSize: 14 }}
-              title="Oura's Activity Day runs 4am-4am and doesn't finalize until tomorrow morning -- same as it would show as still-calculating in the Oura app right now."
-            >
-              Syncing
-            </div>
+          ) : member.activityDay === null && member.source === "oura" ? (
+            <div className="val metric-pending">No data yet</div>
           ) : (
             <div className="val" style={{ color: "#E06060" }}>
               {member.activity}
@@ -261,16 +264,14 @@ function MemberCard({ member, rank }: { member: LiveMember; rank: number }) {
           <div className="lbl">Activity</div>
         </div>
         <div className="mini-metric">
-          {showActivity ? (
-            <div
-              className="val"
-              style={{ color: "#4CAF8A" }}
-              title={isLiveNow ? "Live count, same as their own Oura app -- grows as their ring syncs today" : undefined}
-            >
+          {!showActivity ? (
+            <div className="val private-metric">—</div>
+          ) : member.activityDay === null && member.source === "oura" ? (
+            <div className="val metric-pending">No data yet</div>
+          ) : (
+            <div className="val" style={{ color: "#4CAF8A" }}>
               {(member.steps / 1000).toFixed(1)}k
             </div>
-          ) : (
-            <div className="val private-metric">—</div>
           )}
           <div className="lbl">Steps</div>
         </div>
@@ -285,10 +286,8 @@ function MemberCard({ member, rank }: { member: LiveMember; rank: number }) {
         </a>
       )}
       {isLiveNow && member.lastSyncedAt && <FreshnessLabel lastSyncedAt={member.lastSyncedAt} />}
-      {isLiveNow && member.activityPending && (
-        <div className="sync-pending-note">
-          Today&apos;s activity is still syncing from {member.name}&apos;s ring
-        </div>
+      {isLiveNow && member.activityDay && member.activityDay !== new Date().toISOString().slice(0, 10) && (
+        <div className="sync-pending-note">Activity/Steps as of {shortDayLabel(member.activityDay)}</div>
       )}
       {isLiveNow && (
         <a

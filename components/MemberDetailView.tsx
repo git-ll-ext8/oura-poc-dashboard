@@ -112,18 +112,18 @@ export function MemberDetailView({ shortId }: { shortId: string }) {
                     const visible = isRowVisible(row.source, member.consentedMetrics, m.key);
                     // Oura's Activity score is documented as an integer in [1, 100] or
                     // null -- a real score is never 0, so a stored 0 on a real Oura row
-                    // means that day's Activity Day (4am-4am local) hadn't finalized
-                    // yet at last sync, same "still calculating" state the Oura app
-                    // itself would show.
-                    const pending = m.key === "activity" && row.source === "oura" && row.activity === 0;
+                    // means Oura never finished scoring that day (its Activity Day, or
+                    // the sync that would've reported it, never closed out). Avoid
+                    // "calculating" here -- this dashboard only checks Oura once a day,
+                    // so for anything but the most recent day or two this isn't "about
+                    // to resolve," it's just a gap. "No score" makes no promise either way.
+                    const noScore = m.key === "activity" && row.source === "oura" && row.activity === 0;
                     return (
                       <td key={m.key}>
                         {!visible ? (
                           <span className="private-metric">Private</span>
-                        ) : pending ? (
-                          <span className="metric-pending" title="Not finalized by Oura yet as of the last sync">
-                            ⋯ calculating
-                          </span>
+                        ) : noScore ? (
+                          <span className="metric-pending">No score</span>
                         ) : (
                           <span style={{ color: m.color }}>{row[m.key]}</span>
                         )}

@@ -34,7 +34,7 @@ export type LiveMember = DbMember & {
   sleep: number;
   activity: number;
   steps: number;
-  activityPending: boolean;
+  activityDay: string | null;
   weekly: DbDailyScore[];
   source: string;
   consentedMetrics: Set<MetricKey>;
@@ -42,6 +42,11 @@ export type LiveMember = DbMember & {
 
 function weekdayLabel(day: string): string {
   return new Date(`${day}T00:00:00Z`).toLocaleDateString("en-US", { weekday: "short", timeZone: "UTC" });
+}
+
+// Short "Jul 19" style label for captioning which day a fallback value came from.
+export function shortDayLabel(day: string): string {
+  return new Date(`${day}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
 }
 
 export function buildLiveMembers(
@@ -71,27 +76,27 @@ export function buildLiveMembers(
       const last7 = scores.slice(-7);
       const latest = scores[scores.length - 1];
 
-      // Match what the member would see in their OWN Oura app: steps are a live,
-      // always-populated counter that grows all day (Oura's API spec requires
-      // `steps` as a non-null integer), so "today" should show today's real,
-      // still-growing count -- same as glancing at their phone right now.
-      //
-      // Activity SCORE is different: Oura's spec states it's an integer in range
-      // [1, 100] or null -- so a real score is NEVER 0. A stored 0 (our sync's
-      // default when Oura returns null) unambiguously means "not computed yet,"
-      // which happens because the Activity Day runs 4am-4am local and doesn't
-      // close until tomorrow morning. Rather than show a misleading 0 or quietly
-      // substitute yesterday's frozen number, flag it as pending so the UI can
-      // show "still calculating" -- the same honest state their own app would be in.
-      const activityPending = (latest?.activity ?? 0) === 0 && latest?.source === "oura";
+      // IMPORTANT CONTEXT: this dashboard only talks to Oura's servers ONCE A DAY
+      // (the cron, or a fresh sign-in) -- there is no continuous polling. So "today"
+      // never gets a second chance to update after that one daily pull. Combined
+      // with Oura's own Activity Day running 4am-4am local (closes the NEXT
+      // morning), the daily pull essentially never has a finished activity score
+      // for "today" -- only for a prior day whose window already closed. A "live,
+      // still syncing" framing was therefore misleading given how infrequently we
+      // actually check: nothing resolves again until tomorrow's pull, not "any
+      // minute now." Show the latest day that actually has a real score (never 0
+      // per Oura's spec: activity score range is [1, 100] or null) instead, and let
+      // the existing "Last updated" freshness label be the one honest signal for
+      // staleness rather than a second, contradictory one.
+      const latestWithActivity = [...scores].reverse().find((s) => s.activity > 0) ?? null;
 
       return {
         ...member,
         readiness: latest?.readiness ?? 0,
         sleep: latest?.sleep ?? 0,
-        activity: latest?.activity ?? 0,
-        steps: latest?.steps ?? 0,
-        activityPending,
+        activity: latestWithActivity?.activity ?? 0,
+        steps: latestWithActivity?.steps ?? 0,
+        activityDay: latestWithActivity?.day ?? null,
         weekly: last7,
         source: latest?.source ?? "sandbox",
         consentedMetrics: consentsByMember.get(member.shortId) ?? new Set<MetricKey>(),

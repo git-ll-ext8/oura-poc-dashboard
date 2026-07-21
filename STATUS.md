@@ -1,8 +1,21 @@
 # STATUS — Oura Team Wellness Dashboard
 
-**Updated:** 2026-07-20 (later same day) by Claude Code
+**Updated:** 2026-07-21 by Claude Code
 
-## Latest: production confirmed working + two UI tweaks
+## Latest: click any person to see their full history
+
+**In plain language:** you can now click anyone — either their tile on the leaderboard, or their name in the left sidebar's Team list — and it opens a new page showing that person's complete history as a table, one row per day (Readiness, Sleep, Activity, Steps, and whether that day is Real or Demo data). Same privacy rule as before: if someone hasn't agreed to share a metric, that cell just shows "Private" instead of the number.
+
+- Checked in code and pushed to GitHub — Vercel will auto-deploy it.
+- Double-checked the privacy rule against the real database before pushing: Tracy's real data shows correctly (she's shared everything), and sandbox-only people (like you) show everything too since that's not real health data.
+- No visual click-through test was possible this session (no browser preview tool loaded) — the data logic was verified directly against the live database instead. Worth a quick eyeball on the live site once deployed, whenever convenient — not urgent.
+
+## Also confirmed this session: the frozen-dashboard fix from yesterday is solid
+While checking on the above, I re-confirmed all three additions from yesterday's frozen-dashboard fix (freshness "last updated" label, the once-daily auto-refresh, and permanent history storage) are committed, pushed, and live on `master` — nothing was lost or left behind.
+
+## Older history below (previous session)
+
+### Production confirmed working + two UI tweaks (2026-07-20)
 
 - **Confirmed the Vercel setup is correct**: tested the live production refresh endpoint directly with the security key — it succeeded and pulled real data for Nadia and Tracy. The daily 11am ET schedule just hasn't had its first automatic run yet (it was set up after 11am today), which is expected, not a bug.
 - **"Last updated" text made bigger and bright red** for readability (was small and muted gray).
@@ -80,6 +93,7 @@ Nadia's and Tracy's cards had been frozen since demo day (July 9). Cause: the ap
 - [x] ~~Revoke → DEMO DATA auto-implemented~~ — **superseded same session, see safety-hardening entry below.** `disconnectMember()` still exists and still works, but the cron no longer calls it automatically on a rejected refresh. Per explicit instruction to treat Tracy's/Nadia's tokens as irreplaceable while unattended, a rejected refresh now only raises an alert; cleanup is a deliberate human action.
 - [x] **Safety-hardened the token-refresh swap** (same-day follow-up, after the milestone above): the riskiest moment in this whole system is "old token dies, new one must be saved" — if the save silently failed after Oura already issued a new token, the OLD refresh token could already be dead server-side, and the NEXT day's cron would see that failure and (under the old logic) wrongly conclude "revoked" and wipe someone's real data for no real reason. Fixed by saving the new token FIRST, reading it back to confirm the write actually landed, retrying automatically (up to 4 attempts) before giving up — and even in the worst case (all retries fail), the system no longer auto-disconnects; it just logs an alert and leaves everything untouched for manual review. Re-verified the entire renewed flow against Oura's live API using only Lawrence's own token — confirmed the new "saved and verified" log line fires correctly, confirmed Tracy's and Nadia's tokens were never touched by this test (not due to expire until August, so cron takes the zero-risk fast path for them today).
 - [x] **"Last updated" freshness display added** to every real-data card — human-readable timestamp + a self-updating "(N ago)" counter, turns red if ever stale past 36 hours.
+- [x] **Member history page added (2026-07-21):** new `/member/[shortId]` page, reachable by clicking a leaderboard tile or a sidebar Team name, shows a member's full day-by-day history as a table. Reuses the leaderboard's exact consent-gating rule per row (`isRowVisible` in `lib/live.ts`), so nothing more or less is visible than on the leaderboard itself — just spread across every day on record instead of only the latest one.
 - [ ] **One Vercel click still needed:** add the `CRON_SECRET` environment variable, then redeploy. Exact value and steps given in chat.
 
 ## Live URLs
@@ -105,6 +119,12 @@ All other env vars (`OURA_CLIENT_ID`, `OURA_CLIENT_SECRET`, `APP_BASE_URL`, `INS
 3. Nothing else to do — it'll run on its own every day at 11am ET from then on. First real automatic run will show up as a fresh "Last updated" time on Nadia's and Tracy's cards the next morning.
 
 ## Notes for the other agent (Codex fallback, `..\520.Codex`)
+
+### 2026-07-21 session: member history page
+- **New route `app/member/[shortId]/page.tsx`** (client component, Next.js 15+/16 convention: `params` is a `Promise`, unwrapped via React's `use()` hook) + **new `components/MemberDetailView.tsx`** — queries `members`/`dailyScores`/`consents` filtered `where: { shortId }` (InstaQL supports this filter client-side same as server-side), renders a header (avatar, name, role, LIVE/DEMO badge, freshness label, sign-in/manage-sharing link) and a scrollable `<table>` of every day on record, newest first.
+- **Generalized the consent-gating helper**: `lib/live.ts`'s old `isMetricVisible(member, metric)` (checked only a member's *latest* row) now delegates to a new `isRowVisible(source, consentedMetrics, metric)` that takes the row's own `source` — needed because the leaderboard only ever looks at "today," but the history table shows every row, and a member can have both old `sandbox` rows and newer `oura` rows in the same history. Sandbox rows are always visible regardless of consent; oura rows are gated exactly as before. `isMetricVisible` is kept as a one-line wrapper so the leaderboard's existing call sites didn't need to change.
+- **Click navigation wired in two places**: `components/Sidebar.tsx`'s Team list rows and `components/LeaderboardView.tsx`'s `MemberCard` tiles both `router.push(`/member/${shortId}`)` on click. The two existing inner action links on each card ("Sign in with Oura" / "Manage my sharing →") got `onClick={(e) => e.stopPropagation()}` added so clicking them doesn't also trigger card navigation (both handlers were already anchors with their own `href`, this only stops event bubbling, doesn't change what they do).
+- **Verification done:** `npx tsc --noEmit`, `npm run lint`, `npm run build` all clean (`/member/[shortId]` builds as a dynamic route, all 15 routes total). No browser preview tool was available this session, so actual rendered output wasn't screenshotted — instead ran a read-only Node script (Admin SDK, deleted after use) that replicated `MemberDetailView`'s exact query + `isRowVisible` logic against the live database for both Tracy (real Oura, all 3 metrics consented — confirmed all values show across 43 real rows) and Lawrence (sandbox-only — confirmed all values show across 29 rows, since sandbox is never gated). This confirms the data/logic layer end-to-end; only the actual pixel rendering is unverified this session. Worth a real click-through in a browser next session if one's available.
 
 ### Same-session follow-up: safety-hardened the refresh swap (supersedes parts of the entry below)
 Prompted by an explicit instruction: Tracy's and Nadia's tokens must be treated as irreplaceable while Lawrence is on vacation, since he won't be available to help them re-sign-in if something goes wrong. Two changes:

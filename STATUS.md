@@ -2,7 +2,16 @@
 
 **Updated:** 2026-07-21 (later same day) by Claude Code
 
-## Latest: fixed "Activity and Steps show 0" for Tracy and Nadia
+## Latest: dashboard now matches what Tracy/Nadia would see on their own phone
+
+**In plain language:** you asked me to make the dashboard match the real Oura app, since that's what people will compare it to. I checked Oura's official developer docs to see exactly how their own app behaves, and changed our approach:
+
+- **Steps now update live**, same as the step counter on their phone — it grows throughout the day as their ring syncs. Right now (before either of them has opened their app today) it's honestly showing 0 for both, because that's genuinely what Oura's cloud has for today so far — same as what their own phone would show if they haven't synced yet either.
+- **Activity score now shows "⋯ calculating"** instead of a number, on any day that Oura hasn't finished scoring yet. Oura's own rule (confirmed in their official docs): an Activity Day runs 4am-to-4am and doesn't close until the next morning, and a real score is never 0 — so 0 always meant "not done yet," never "no activity." Showing "calculating" is more honest than either a fake 0 or quietly showing yesterday's number as if it were today's.
+- This replaces this morning's earlier fix (which showed yesterday's frozen number) — this new approach is a better match for "what would Tracy see if she opened her own app right now."
+- Tested in a real browser again: leaderboard, category leaders, and the click-through history page all show the new "calculating" state correctly, no errors.
+
+## Older: fixed "Activity and Steps show 0" for Tracy and Nadia
 
 **In plain language:** this was a real bug, now fixed and live. Oura scores "today's activity" differently than "today's readiness/sleep" — activity for a day isn't finalized until 4am the *next* morning, while readiness/sleep are ready same-day. The dashboard was blindly showing "today" for everything, so Activity/Steps looked like zero every single morning for anyone with real Oura data — not just Tracy and Nadia, it would have hit anyone. Fixed by having the dashboard show the most recent *complete* activity number instead of a not-ready-yet zero. Confirmed in a real browser: Tracy now correctly shows 89/14.2k (Jul 19, her last fully-synced day) instead of 0/0.5k; Nadia still correctly shows 82/8.9k.
 
@@ -135,6 +144,20 @@ All other env vars (`OURA_CLIENT_ID`, `OURA_CLIENT_SECRET`, `APP_BASE_URL`, `INS
 3. Nothing else to do — it'll run on its own every day at 11am ET from then on. First real automatic run will show up as a fresh "Last updated" time on Nadia's and Tracy's cards the next morning.
 
 ## Notes for the other agent (Codex fallback, `..\520.Codex`)
+
+### 2026-07-21 (later still): matched dashboard behavior to the real Oura app, superseding the same-day earlier fix
+- **Ask**: user wants the dashboard's "today" numbers to match what a member would see in the actual Oura iOS/Android app, since that's the mental model anyone comparing will use — and asked for this to be grounded in Oura's current docs, not assumption.
+- **Ground truth pulled this session**: downloaded Oura's actual OpenAPI spec directly (`https://cloud.ouraring.com/v2/static/json/openapi-1.35.json` — the "Download" link on `cloud.ouraring.com/v2/docs`; note `curl` to this host is blocked by this environment's Bash network egress same as before, used `Invoke-WebRequest` via the PowerShell tool instead). Key facts confirmed straight from `components.schemas.PublicDailyActivity`:
+  - `score`: `"anyOf": [integer, null]`, description **"Activity score in range [1, 100]"** — a real score is never `0`. A stored `0` is unambiguous proof "not computed yet," no sentinel value needed.
+  - `steps`: plain `integer`, in the schema's `required` list — always present, never null. Confirms steps genuinely IS a live, continuously-updated real number all day, unlike the score.
+  - `day` description: **"Object defining a daily activity that is a 24-hour period starting at 4 a.m."** — matches the partner-docs finding from earlier in the day.
+  - Checked `PublicDailyReadiness`/`PublicDailySleep` too for consistency: their `score` fields are also nullable but have NO stated numeric floor (no "[1,100]" language) — so the same "0 means pending" trick does NOT safely generalize to readiness/sleep (their real scores could plausibly be very low). Correctly left those two untouched.
+  - Also confirmed via `WebSearch` (Oura's own app-help content): *"Your Activity Score changes throughout the day based on how active you are... The Today tab surfaces the most important information about your health and will update throughout that day."* — the app's own live view is what we're now approximating, within third-party-API limits (we can't see Oura's proprietary live-provisional-score algorithm, only the null-until-finalized cloud value).
+- **This change SUPERSEDES part of the same-day earlier commit** (`557ccfc`, "Fix leaderboard showing 0 Activity/Steps: fall back to latest closed Activity Day"). That fix fell back to the latest day with a real score for BOTH activity and steps — which is factually stale for steps (steps should be live/today, not yesterday's frozen count) and was overly opaque for activity (silently showing a different day's number under "today" misrepresents what's currently true). Superseded, not reverted wholesale — the earlier fix's core insight (0 is a write-time default, not a real score) is what this session's fix builds on.
+- **New `LiveMember.activityPending: boolean`** (`lib/live.ts`) — true when the latest day's stored `activity === 0` AND `source === "oura"` (sandbox seed data is never legitimately 0, so the source check avoids any false positive there). `steps` now always comes straight from `latest` (today's real, possibly-still-0, live count) with no fallback.
+- **UI treatment** (`components/LeaderboardView.tsx`, `components/MemberDetailView.tsx`, `app/globals.css` → new `.metric-pending` class, styled identically to `.private-metric` but semantically distinct): activity shows `⋯` (card) / `⋯ calculating` (history table row) with an explanatory `title` tooltip instead of a number when pending. Steps keeps showing the real live count, with a tooltip on live members explaining it updates as their ring syncs. "Best Activity" category leaders (`LeaderboardView.tsx`'s `CATEGORIES.map`) now filters out `activityPending` members so an unscored member isn't unfairly ranked last with a fake `0`; "Most Steps" intentionally does NOT filter — a low live step count early in the day is real and comparable.
+- **Verified in a real browser** (Browser preview tool available again this session): reloaded `/`, confirmed Tracy/Nadia both show `⋯` for Activity and `0.0k` for Steps (accurate — neither had synced today as of this check) with "Best Activity" correctly showing only the 3 sandbox members; confirmed `/member/T`'s history table shows `⋯ calculating` for both `2026-07-21` and `2026-07-20` (her still-pending days) while `2026-07-19` and earlier show real finalized numbers. `npx tsc --noEmit`, `npm run lint`, `npm run build` all clean.
+- **If Tracy/Nadia sync later today**: no code change needed — next InstantDB live-query update (either their own sign-in re-sync or tomorrow's 11am cron) will naturally flip `activityPending` false and populate real numbers, since the underlying data model didn't change, only which stored value gets treated as "pending."
 
 ### 2026-07-21 (later): Activity/Steps-showing-0 bug, root-caused and fixed
 - **Symptom**: Tracy's and Nadia's leaderboard cards both showed `Activity: 0` and `Steps: 0`/`0.5k` despite having real Oura data flowing in fine for readiness/sleep.

@@ -70,7 +70,12 @@ export function Sidebar({
         <div className="nav-label">Team</div>
         <div>
           {ranked.map((m) => (
-            <div className="team-member-nav" key={m.id}>
+            <div
+              className="team-member-nav"
+              key={m.id}
+              onClick={() => router.push(`/member/${m.shortId}`)}
+              title={`View ${m.name}'s full history`}
+            >
               <div className="tav" style={{ background: `${m.color}28`, color: m.color }}>
                 {m.shortId}
               </div>

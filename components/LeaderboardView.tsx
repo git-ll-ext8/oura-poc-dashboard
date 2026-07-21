@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { FreshnessLabel } from "./FreshnessLabel";
 import { RingArc } from "./RingArc";
@@ -180,6 +181,7 @@ export function LeaderboardView() {
 }
 
 function MemberCard({ member, rank }: { member: LiveMember; rank: number }) {
+  const router = useRouter();
   const showReadiness = isMetricVisible(member, "readiness");
   const showSleep = isMetricVisible(member, "sleep");
   const showActivity = isMetricVisible(member, "activity");
@@ -203,7 +205,11 @@ function MemberCard({ member, rank }: { member: LiveMember; rank: number }) {
   }, [isLiveNow]);
 
   return (
-    <div className={`member-card rank-${rank}${justWentLive ? " just-went-live" : ""}`}>
+    <div
+      className={`member-card rank-${rank}${justWentLive ? " just-went-live" : ""}`}
+      onClick={() => router.push(`/member/${member.shortId}`)}
+      title={`View ${member.name}'s full history`}
+    >
       <div className="rank-badge">{rank}</div>
       <div className="avatar" style={{ background: `${member.color}22`, color: member.color }}>
         {member.shortId}
@@ -255,13 +261,21 @@ function MemberCard({ member, rank }: { member: LiveMember; rank: number }) {
         </div>
       </div>
       {!isLiveNow && (
-        <a className="signin-oura-btn" href={`/api/auth/oura/login?member=${member.shortId}`}>
+        <a
+          className="signin-oura-btn"
+          href={`/api/auth/oura/login?member=${member.shortId}`}
+          onClick={(e) => e.stopPropagation()}
+        >
           Sign in with Oura
         </a>
       )}
       {isLiveNow && member.lastSyncedAt && <FreshnessLabel lastSyncedAt={member.lastSyncedAt} />}
       {isLiveNow && (
-        <a className="manage-sharing-link" href={`/api/auth/oura/login?member=${member.shortId}`}>
+        <a
+          className="manage-sharing-link"
+          href={`/api/auth/oura/login?member=${member.shortId}`}
+          onClick={(e) => e.stopPropagation()}
+        >
           Manage my sharing →
         </a>
       )}

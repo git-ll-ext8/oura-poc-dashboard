@@ -84,9 +84,17 @@ export function buildLiveMembers(
 
 // Sandbox data has no real privacy concern (it's synthetic demo data) — always visible.
 // Real Oura data is gated per-metric by the member's own consent choice, default private.
+// Row-level version: consent is a CURRENT setting applied uniformly to all of a
+// member's oura-sourced rows (there's no historical "what was shared on that day"
+// record) — but each ROW's own source still matters, since one member can have both
+// sandbox rows (old seed data) and oura rows (real pulls) in their history.
+export function isRowVisible(source: string, consentedMetrics: Set<MetricKey>, metric: MetricKey): boolean {
+  if (source !== "oura") return true;
+  return consentedMetrics.has(metric);
+}
+
 export function isMetricVisible(member: LiveMember, metric: MetricKey): boolean {
-  if (member.source !== "oura") return true;
-  return member.consentedMetrics.has(metric);
+  return isRowVisible(member.source, member.consentedMetrics, metric);
 }
 
 // Puts everyone with real Oura data first (so they're visible without scrolling),

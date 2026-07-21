@@ -89,6 +89,17 @@ export function isMetricVisible(member: LiveMember, metric: MetricKey): boolean 
   return member.consentedMetrics.has(metric);
 }
 
+// Puts everyone with real Oura data first (so they're visible without scrolling),
+// then everyone on sandbox data — readiness-descending within each group.
+export function sortLiveFirst(members: LiveMember[]): LiveMember[] {
+  return [...members].sort((a, b) => {
+    const aLive = a.source === "oura" ? 1 : 0;
+    const bLive = b.source === "oura" ? 1 : 0;
+    if (aLive !== bLive) return bLive - aLive;
+    return b.readiness - a.readiness;
+  });
+}
+
 export function formatAbsoluteTime(ms: number): string {
   const d = new Date(ms);
   const datePart = d.toLocaleDateString("en-US", {

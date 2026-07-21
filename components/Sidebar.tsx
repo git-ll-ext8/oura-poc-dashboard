@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { db } from "@/lib/instant";
-import { buildLiveMembers } from "@/lib/live";
+import { buildLiveMembers, sortLiveFirst } from "@/lib/live";
 
 export type NavView = "leaderboard" | "quarterly" | "trends" | "badges";
 
@@ -34,9 +34,7 @@ export function Sidebar({
   const router = useRouter();
   const onDashboard = pathname === "/";
   const { data } = db.useQuery({ members: {}, dailyScores: {} });
-  const ranked = data
-    ? [...buildLiveMembers(data.members, data.dailyScores)].sort((a, b) => b.readiness - a.readiness)
-    : [];
+  const ranked = data ? sortLiveFirst(buildLiveMembers(data.members, data.dailyScores)) : [];
 
   function handleNavClick(view: NavView) {
     if (onDashboard) {

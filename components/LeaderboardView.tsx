@@ -5,7 +5,7 @@ import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YA
 import { FreshnessLabel } from "./FreshnessLabel";
 import { RingArc } from "./RingArc";
 import { db } from "@/lib/instant";
-import { buildLiveMembers, isMetricVisible, weekdayLabel, type LiveMember, type MetricKey } from "@/lib/live";
+import { buildLiveMembers, isMetricVisible, sortLiveFirst, weekdayLabel, type LiveMember, type MetricKey } from "@/lib/live";
 
 const SUB_TABS = ["Today", "This Week", "This Month"];
 
@@ -48,7 +48,7 @@ export function LeaderboardView() {
   }
 
   const members = buildLiveMembers(data.members, data.dailyScores, data.consents);
-  const ranked = [...members].sort((a, b) => b.readiness - a.readiness);
+  const ranked = sortLiveFirst(members);
   const dayLabels = (ranked[0]?.weekly ?? []).map((s) => weekdayLabel(s.day));
   const chartData = dayLabels.map((day, i) => {
     const row: Record<string, string | number> = { day };

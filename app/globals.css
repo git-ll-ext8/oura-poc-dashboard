@@ -22,6 +22,7 @@
   --green-dim: rgba(76, 175, 138, 0.15);
   --coral: #e06060;
   --coral-dim: rgba(224, 96, 96, 0.15);
+  --bright-red: #ff3b30;
   --silver: #8badc8;
   --text: #edf2f7;
   --text-muted: #7a9bb8;
@@ -1399,14 +1400,15 @@ body {
 }
 .freshness-label {
   margin-top: 10px;
-  font-size: 10px;
-  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--bright-red);
   text-align: center;
   line-height: 1.4;
 }
 .freshness-label.stale {
-  color: var(--coral);
-  font-weight: 700;
+  font-weight: 800;
+  text-decoration: underline;
 }
 
 .consent-privacy-intro {

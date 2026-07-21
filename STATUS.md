@@ -1,6 +1,13 @@
 # STATUS — Oura Team Wellness Dashboard
 
-**Updated:** 2026-07-20 by Claude Code
+**Updated:** 2026-07-20 (later same day) by Claude Code
+
+## Latest: production confirmed working + two UI tweaks
+
+- **Confirmed the Vercel setup is correct**: tested the live production refresh endpoint directly with the security key — it succeeded and pulled real data for Nadia and Tracy. The daily 11am ET schedule just hasn't had its first automatic run yet (it was set up after 11am today), which is expected, not a bug.
+- **"Last updated" text made bigger and bright red** for readability (was small and muted gray).
+- **Live members now show first, left to right** — Tracy and Nadia (real Oura data) appear before Lawrence, Danny, and Kathrina (demo data), so there's no need to scroll to see who's actually connected. Verified against real current data: order comes out Tracy → Nadia → Lawrence → Danny → Kathrina, exactly as requested.
+- Clarified: the July 14–20 data already in the system is real Tracy/Nadia data (not fake test data) fetched a bit early by hand — nothing was deleted, since it's accurate history worth keeping.
 
 ## In plain language (read this first)
 

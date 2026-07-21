@@ -1067,6 +1067,12 @@ body {
   font-style: italic;
 }
 
+.metric-pending {
+  color: var(--text-dim);
+  font-style: italic;
+  cursor: help;
+}
+
 /* ── SLIDE DECK (shared by /story, /script, /thesis) ── */
 .slide-deck {
   position: fixed;

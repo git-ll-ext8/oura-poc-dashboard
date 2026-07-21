@@ -34,6 +34,7 @@ export type LiveMember = DbMember & {
   sleep: number;
   activity: number;
   steps: number;
+  activityPending: boolean;
   weekly: DbDailyScore[];
   source: string;
   consentedMetrics: Set<MetricKey>;
@@ -70,21 +71,27 @@ export function buildLiveMembers(
       const last7 = scores.slice(-7);
       const latest = scores[scores.length - 1];
 
-      // Oura's "Activity Day" runs 4am-4am local time (closes the NEXT morning), while
-      // Readiness/Sleep are stamped by plain UTC calendar date and land same-morning.
-      // So the single most-recent day row can have real readiness/sleep but a
-      // structurally-can't-exist-yet activity score (defaulted to 0 at write time in
-      // lib/oura-sync.ts) — that's not "no activity," it's "today's activity window
-      // hasn't closed." Fall back to the latest day that actually has one, so the
-      // card shows yesterday's real number instead of a misleading 0.
-      const latestWithActivity = [...scores].reverse().find((s) => s.activity > 0) ?? latest;
+      // Match what the member would see in their OWN Oura app: steps are a live,
+      // always-populated counter that grows all day (Oura's API spec requires
+      // `steps` as a non-null integer), so "today" should show today's real,
+      // still-growing count -- same as glancing at their phone right now.
+      //
+      // Activity SCORE is different: Oura's spec states it's an integer in range
+      // [1, 100] or null -- so a real score is NEVER 0. A stored 0 (our sync's
+      // default when Oura returns null) unambiguously means "not computed yet,"
+      // which happens because the Activity Day runs 4am-4am local and doesn't
+      // close until tomorrow morning. Rather than show a misleading 0 or quietly
+      // substitute yesterday's frozen number, flag it as pending so the UI can
+      // show "still calculating" -- the same honest state their own app would be in.
+      const activityPending = (latest?.activity ?? 0) === 0 && latest?.source === "oura";
 
       return {
         ...member,
         readiness: latest?.readiness ?? 0,
         sleep: latest?.sleep ?? 0,
-        activity: latestWithActivity?.activity ?? 0,
-        steps: latestWithActivity?.steps ?? 0,
+        activity: latest?.activity ?? 0,
+        steps: latest?.steps ?? 0,
+        activityPending,
         weekly: last7,
         source: latest?.source ?? "sandbox",
         consentedMetrics: consentsByMember.get(member.shortId) ?? new Set<MetricKey>(),

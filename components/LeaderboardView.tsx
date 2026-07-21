@@ -110,7 +110,10 @@ export function LeaderboardView() {
       <div className="metrics-row">
         {CATEGORIES.map((cat) => {
           const metric = METRIC_FOR_CATEGORY[cat.key];
-          const visible = members.filter((m) => isMetricVisible(m, metric));
+          // "Best Activity" needs a real finalized score to rank fairly -- a member
+          // whose score is still calculating isn't "0 activity," they're unranked
+          // yet. Steps stays live for everyone since it's always a real number.
+          const visible = members.filter((m) => isMetricVisible(m, metric) && !(cat.key === "activity" && m.activityPending));
           const sorted = [...visible].sort((a, b) => b[cat.key] - a[cat.key]);
           return (
             <div className="metric-card" key={cat.id}>
@@ -240,18 +243,29 @@ function MemberCard({ member, rank }: { member: LiveMember; rank: number }) {
           <div className="lbl">Sleep</div>
         </div>
         <div className="mini-metric">
-          {showActivity ? (
+          {!showActivity ? (
+            <div className="val private-metric">—</div>
+          ) : member.activityPending ? (
+            <div
+              className="val metric-pending"
+              title="Oura's Activity Day runs 4am-4am and doesn't finalize until tomorrow morning -- same as it would show as still-calculating in the Oura app right now."
+            >
+              ⋯
+            </div>
+          ) : (
             <div className="val" style={{ color: "#E06060" }}>
               {member.activity}
             </div>
-          ) : (
-            <div className="val private-metric">—</div>
           )}
           <div className="lbl">Activity</div>
         </div>
         <div className="mini-metric">
           {showActivity ? (
-            <div className="val" style={{ color: "#4CAF8A" }}>
+            <div
+              className="val"
+              style={{ color: "#4CAF8A" }}
+              title={isLiveNow ? "Live count, same as their own Oura app -- grows as their ring syncs today" : undefined}
+            >
               {(member.steps / 1000).toFixed(1)}k
             </div>
           ) : (

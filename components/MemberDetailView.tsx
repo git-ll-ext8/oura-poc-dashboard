@@ -110,12 +110,22 @@ export function MemberDetailView({ shortId }: { shortId: string }) {
                   <td>{row.day}</td>
                   {METRICS.map((m) => {
                     const visible = isRowVisible(row.source, member.consentedMetrics, m.key);
+                    // Oura's Activity score is documented as an integer in [1, 100] or
+                    // null -- a real score is never 0, so a stored 0 on a real Oura row
+                    // means that day's Activity Day (4am-4am local) hadn't finalized
+                    // yet at last sync, same "still calculating" state the Oura app
+                    // itself would show.
+                    const pending = m.key === "activity" && row.source === "oura" && row.activity === 0;
                     return (
                       <td key={m.key}>
-                        {visible ? (
-                          <span style={{ color: m.color }}>{row[m.key]}</span>
-                        ) : (
+                        {!visible ? (
                           <span className="private-metric">Private</span>
+                        ) : pending ? (
+                          <span className="metric-pending" title="Not finalized by Oura yet as of the last sync">
+                            ⋯ calculating
+                          </span>
+                        ) : (
+                          <span style={{ color: m.color }}>{row[m.key]}</span>
                         )}
                       </td>
                     );
